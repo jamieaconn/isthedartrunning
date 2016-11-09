@@ -24,22 +24,7 @@ import sqlite3 as lite
 import sys
 
 river = 'dart'
-testing = 0
-
-if (testing == 1):
-    err_print = 1 # st to 1 for lots of printing messages : )
-    image = 'test.png'
-    database = 'test.db'
-    os.system("cp data.db test.db")
-    cur_time = strftime("%Y-%m-%dT%H:%M", gmtime())
-    image_name = "testing/" + cur_time + ".png"
-else:
-    err_print = 0 # st to 1 for lots of printing messages : )
-    image = 'graph.png'
-    database = 'data.db'
-    cur_time = strftime("%Y-%m-%dT%H:%M", gmtime())
-    image_name = "forecast/" + cur_time + ".png"
-
+database = 'data.db'
 
 def level():
 
