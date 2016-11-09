@@ -20,13 +20,7 @@ import ftplib
 import sqlite3 as lite
 import sys
 
-
-testing = False
-
-if testing:
-    database = 'test.db'
-else:
-    database = 'data.db'
+database = 'data.db'
 
 rivers = ['dart', 'nevis']
 bounds = {
