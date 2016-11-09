@@ -27,22 +27,7 @@ forecast = False
 river = 'nevis'
 rain_url = 'http://beta.sepa.org.uk/rainfall/api/Hourly/115343'
 level_url = 'http://apps.sepa.org.uk/database/riverlevels/116011-SG.csv'
-
-testing = False
-
-if testing:
-    err_print = 1 # st to 1 for lots of printing messages : )
-    image = 'test.png'
-    database = 'test.db'
-    os.system("cp data.db test.db")
-    cur_time = strftime("%Y-%m-%dT%H:%M", gmtime())
-    image_name = "testing/" + cur_time + ".png"
-else:
-    err_print = 0 # st to 1 for lots of printing messages : )
-    image = 'graph.png'
-    database = 'data.db'
-    cur_time = strftime("%Y-%m-%dT%H:%M", gmtime())
-    image_name = "forecast/" + cur_time + ".png"
+database = 'data.db'
 
 plot_range = 300
 k = 0.12
@@ -169,9 +154,6 @@ def interpolate():
 
     forecast_rain = cur.fetchall()
     data = latest_rain + forecast_rain
-    if (err_print == 1):
-        print data
-        print str(len(data))
     for x in range(0, len(data) - 1):
         beg_time = data[x][0]
         beg_rain = data[x][1]
@@ -182,11 +164,6 @@ def interpolate():
         
         diff = (end_epoch - beg_epoch) / 900
         rain_diff = end_rain - beg_rain
-        if(err_print == 1):
-            print diff
-            print str(rain_diff) 
-            print beg_time
-            print str(beg_rain) 
         for y in range(1, diff):
             time = strftime("%Y-%m-%dT%H:%M" , gmtime(beg_epoch + (y * 900)))
             rain = beg_rain + y * (rain_diff / diff)
@@ -196,9 +173,6 @@ def interpolate():
     
             #print time
             #print str(rain)
-        if (err_print == 1):
-            print end_time
-            print str(end_rain)
  
     con.commit()
     con.close()
@@ -218,15 +192,10 @@ def level():
         con = lite.connect(database)
         cur = con.cursor()
         data = r.json()
-        if(err_print ==1):
-            print "Obtaining level data from: " + url
         for x in range(0, len(data['items'])):
             time = data['items'][x]['dateTime']
             time = time[:16]
             value = data['items'][x]['value']
-            if(err_print == 1):
-                print time
-                print str(value)
             cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time))
             cur.execute("UPDATE {river} SET level=({level_val}), predict=({predict_val}) WHERE timestamp = ('{time_val}')".format(river = river, level_val = value, predict_val = value, time_val = time))
         
@@ -249,14 +218,10 @@ def bucket_iteration(cur, storage_val):
     time_val = cur.fetchall()
     time_val = time_val[0][0]
 
-    if (err_print == 1):
-        print time_val
 
     time_val_delay = strptime(time_val, "%Y-%m-%dT%H:%M")
     time_val_delay =  strftime("%Y-%m-%dT%H:%M" ,gmtime(calendar.timegm(time_val_delay) - (delay * 60 * 15)))
 
-    if (err_print == 1):
-        print time_val_delay
 
     query = """
         SELECT 
@@ -281,8 +246,6 @@ def bucket_iteration(cur, storage_val):
         cur.execute(query.format(river=river, time_val_delay=time_val_delay ))
 
         rain = cur.fetchall()
-        if (err_print == 1):
-            print "Using forecast rainfall"
         if (rain[0][0] == None):
             print "Couldn't fetch rain from " + database
             return None
@@ -319,15 +282,11 @@ def model():
     cur.execute("SELECT level FROM {river} WHERE timestamp = (SELECT MAX(timestamp) FROM {river} WHERE level IS NOT NULL)".format(river=river))
     all_rows = cur.fetchall()
     level_val =  all_rows[0][0]
-    if (err_print == 1):
-        print "Latest level update =: " + str(level_val)
 
     #back calculate the storage based on the that level and input that into the db. 
     storage_val = f_inv(g_inv(level_val))
     cur.execute("UPDATE {river} SET storage = ({storage_val}) WHERE timestamp = (SELECT MAX(timestamp) FROM {river} WHERE level IS NOT NULL)".format(river=river, storage_val = storage_val))
 
-    if (err_print == 1):
-        print "Inverse calculated storage =: " + str(storage_val)
     #FIND HOW MANY ROWS
     query = """
 
@@ -341,8 +300,6 @@ def model():
 
     nrow = cur.fetchall()
     nrow = nrow[0][0] 
-    if (err_print == 1):
-        print "Model iterations: " + str(nrow)
 
     #FIND HOW MANY  forecast ROWS
     query = """
@@ -356,8 +313,6 @@ def model():
 
     f_nrow = cur.fetchall()
     f_nrow = f_nrow[0][0] 
-    if (err_print == 1):
-        print "forecast iterations: " + str(f_nrow)
 
     #START FOR LOOP!
     for x in range(0, nrow + f_nrow):

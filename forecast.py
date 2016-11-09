@@ -20,7 +20,7 @@ import ftplib
 import sqlite3 as lite
 import sys
 
-
+database = 'data.db'
 
 rivers = ['dart', 'nevis']
 bounds = {

@@ -246,6 +246,8 @@ def upload_json(output, filename):
             json.dump(output, f)
 
     else:
+        pass
+"""
         ftp_user = '2236286'
         ftp_url = 'isthedartrunning.co.uk'
         ftp_password = 'ESCC2902'
@@ -258,7 +260,7 @@ def upload_json(output, filename):
             ftp.storlines("STOR " + filename, open(filename))
         else:
             ftp.storbinary("STOR " + filename, open(filename), 1024)
-
+"""
 
 
 river = "dart"
