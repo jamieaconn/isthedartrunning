@@ -1,1 +1,1 @@
-python nevis.py
+python nevis.py $1

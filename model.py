@@ -27,13 +27,15 @@ import ftplib
 import sqlite3 as lite
 import sys
 
-testing = False
+testing = None
 
-if testing:
-    database = 'test.db'
-    os.system("cp data.db test.db")
-else:
-    database = 'data.db'
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'testing':
+        testing  = True
+
+
+
+database = 'data.db'
 
 time_format = "%Y-%m-%dT%H:%M"
 
@@ -232,27 +234,30 @@ def create_json(river, data):
     output['next_up'] = next_up 
     output['values'] = result
     #print json.dumps(output, indent =4)
-    with open('/var/www/html/dart.json', 'w') as f:
+
+    return output
+
+def upload_json(output, filename): 
+    with open(filename, 'w') as f:
         json.dump(output, f)
+    
+    if testing:
+        with open('/var/www/html/dart.json', 'w') as f:
+            json.dump(output, f)
 
-    with open('dart.json', 'w') as f:
-        json.dump(output, f)
-
-
-def upload_json(filename):
-    ftp_user = '2236286'
-    ftp_url = 'isthedartrunning.co.uk'
-    ftp_password = 'ESCC2902'
-    ftp = ftplib.FTP(ftp_url)
-    ftp.login(ftp_user, ftp_password)
-    ftp.cwd('isthedartrunning')
-
-    ext = os.path.splitext(filename)[1]
-    if ext in (".txt", ".htm", ".html"):
-        ftp.storlines("STOR " + filename, open(filename))
     else:
-        ftp.storbinary("STOR " + filename, open(filename, "rb"), 1024)
+        ftp_user = '2236286'
+        ftp_url = 'isthedartrunning.co.uk'
+        ftp_password = 'ESCC2902'
+        ftp = ftplib.FTP(ftp_url)
+        ftp.login(ftp_user, ftp_password)
+        ftp.cwd('isthedartrunning')
 
+        ext = os.path.splitext(filename)[1]
+        if ext in (".txt", ".htm", ".html"):
+            ftp.storlines("STOR " + filename, open(filename))
+        else:
+            ftp.storbinary("STOR " + filename, open(filename), 1024)
 
 
 
@@ -274,7 +279,7 @@ data = model(data)
 
 #pretty_print2(data)
 
-create_json(river, data)
+output = create_json(river, data)
 
 
-upload_json(river + '.json')
+upload_json(output, river + '.json')
