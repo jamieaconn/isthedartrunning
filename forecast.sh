@@ -1,1 +1,1 @@
-python forecast.py
+python forecast.py $1

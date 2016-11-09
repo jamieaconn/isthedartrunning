@@ -1,3 +1,3 @@
-python dart.py
-python model.py
+python dart.py $1
+python model.py $1
 
