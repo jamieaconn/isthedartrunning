@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np
 from scipy import misc
 import glob, os
@@ -24,7 +26,7 @@ database = 'data.db'
 
 rivers = ['dart', 'nevis']
 bounds = {
-    'dart': {'Nmin' : 400, 'Nmax' : 404, 'Emin':234, 'Emax':238},
+    'dart': {'Nmin' : 396, 'Nmax' : 408, 'Emin':230, 'Emax':242},
     'nevis': {'Nmin' : 162, 'Nmax' : 164, 'Emin':205, 'Emax':207}
 }
 
