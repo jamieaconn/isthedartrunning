@@ -228,10 +228,13 @@ def create_json(river, data):
         dum = [line['timestamp'] for line in data if (line['predict'] > 0.7) & (line['timestamp'] > current_time)]
         if dum:
             next_up = min(dum) 
+            next_up = timegm(strptime(next_up, time_format)) * 1000
+    next_up = timegm(strptime('2016-11-10T23:45', time_format)) * 1000  #REMOVE THIS LINE
+
     output = {}       
-    output['current_time'] = current_time
+    output['current_time'] = timegm(strptime(current_time, time_format)) * 1000
     output['current_level'] = current_level 
-    output['next_up'] = next_up 
+    output['next_up'] = next_up
     output['values'] = result
     #print json.dumps(output, indent =4)
 
