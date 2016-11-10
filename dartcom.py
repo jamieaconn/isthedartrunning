@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 import requests
 import datetime
 import numpy as np
