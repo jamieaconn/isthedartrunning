@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 ftp_pass = 'escc2902'
 ftp_user = 'a8506764'
 #ftp_url = 'isthedartrunning.co.uk'
