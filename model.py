@@ -229,7 +229,6 @@ def create_json(river, data):
         if dum:
             next_up = min(dum) 
             next_up = timegm(strptime(next_up, time_format)) * 1000
-    next_up = timegm(strptime('2016-11-10T23:45', time_format)) * 1000  #REMOVE THIS LINE
 
     output = {}       
     output['current_time'] = timegm(strptime(current_time, time_format)) * 1000
