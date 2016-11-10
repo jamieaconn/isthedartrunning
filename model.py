@@ -246,21 +246,17 @@ def upload_json(output, filename):
             json.dump(output, f)
 
     else:
-        pass
-"""
-        ftp_user = '2236286'
-        ftp_url = 'isthedartrunning.co.uk'
-        ftp_password = 'ESCC2902'
+        from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
         ftp = ftplib.FTP(ftp_url)
-        ftp.login(ftp_user, ftp_password)
-        ftp.cwd('isthedartrunning')
+        ftp.login(ftp_user, ftp_pass)
+        if ftp_dir is not None:
+            ftp.cwd(ftp_dir)
 
         ext = os.path.splitext(filename)[1]
         if ext in (".txt", ".htm", ".html"):
             ftp.storlines("STOR " + filename, open(filename))
         else:
             ftp.storbinary("STOR " + filename, open(filename), 1024)
-"""
 
 
 river = "dart"
