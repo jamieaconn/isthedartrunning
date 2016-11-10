@@ -40,15 +40,10 @@ def level():
         con = lite.connect(database)
         cur = con.cursor()
         data = r.json()
-        if(err_print ==1):
-            print "Obtaining level data from: " + url
         for x in range(0, len(data['items'])):
             time = data['items'][x]['dateTime']
             time = time[:16]
             value = data['items'][x]['value']
-            if(err_print == 1):
-                print time
-                print str(value)
             cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time))
             cur.execute("UPDATE {river} SET level=({level_val}), predict=({predict_val}) WHERE timestamp = ('{time_val}')".format(river = river, level_val = value, predict_val = value, time_val = time))
         
@@ -58,8 +53,6 @@ def level():
 
 
 def sql_plot(timestamp):
-    if (err_print == 1):
-        print "generating plot..."    
     con = lite.connect(database)
     cur = con.cursor()
     query = """
@@ -94,8 +87,6 @@ def sql_plot(timestamp):
     plt.plot(dates, values, label = legend)
     plt.gcf().autofmt_xdate()
     plt.legend(loc = 'upper right')
-    if (err_print == 1):
-        print image_name
     plt.savefig(image_name)
 
     ftp = ftplib.FTP("ftp.ipage.com")
@@ -115,8 +106,6 @@ def gettime():
         timestamp = strftime("%Y-%m-%dT%H:15", time)
     else:
         timestamp = strftime("%Y-%m-%dT%H:00", time)
-    if (err_print == 1):
-        print "Current time - 16 min rounded down to nearest 15 min: " + timestamp
     return(timestamp)
 
 def upload(ftp, file):
@@ -175,8 +164,6 @@ def png(timestamp): #gets image from metoffice and returns the rain in the dart 
                 rain = rain + 32
     os.chdir("..")
     pixels = 4*4
-    if(err_print == 1):
-        print "latest_rain: " + str(rain/64)
     return(rain/(pixels * 4)) #remember that this is rain rate and time period is 15 mintues so we need to / 4
 
 
