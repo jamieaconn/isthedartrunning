@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from operator import itemgetter
 
+import requests
 import datetime
 import numpy as np
 from scipy import misc
@@ -253,7 +254,17 @@ def upload_json(testing, output, filename):
         else:
             ftp.storbinary("STOR " + filename, open(filename), 1024)
 
-def run_model(testing):
+
+def post_facebook():
+
+    r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : '246515359021141|2f518c938bc9d1b83299ba40b1cc6379'})
+
+
+    #print(r.status_code, r.reason)
+    #print(r.text[:300] + '...')
+
+
+def run_model(testing=False):
     river = "dart"
     limit = 200
 
@@ -276,7 +287,8 @@ def run_model(testing):
 
 
     upload_json(testing, output, river + '.json')
-
+    
+    post_facebook()
 
 def main():
     run_model()
