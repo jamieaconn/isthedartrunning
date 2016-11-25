@@ -124,12 +124,20 @@ def gettime():
     return(timestamp)
 
 
-timestamp = gettime()
-rain = get_rainfall()
+def rain(testing=False):
+
+    timestamp = gettime()
+    rain = get_rainfall()
 
 
-#Update database with newest rain value
-update_sql(timestamp, rain)
+    #Update database with newest rain value
+    update_sql(timestamp, rain)
+
+def main():
+    rain()
+
+if __name__ == "__main__":
+    main()
 
 
 

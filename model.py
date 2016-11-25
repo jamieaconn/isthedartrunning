@@ -27,15 +27,8 @@ import ftplib
 import sqlite3 as lite
 import sys
 
-testing = None
-
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'testing':
-        testing  = True
-
-
-
 database = 'data.db'
+
 
 time_format = "%Y-%m-%dT%H:%M"
 
@@ -88,7 +81,7 @@ def add_missing_timestamps(data_list):
     while epoch < max_epoch:
         epoch += 900
         timestamp = strftime(time_format, gmtime(epoch))
-        if [line for line in data if line['timestamp'] == timestamp]:
+        if [line for line in data_list if line['timestamp'] == timestamp]:
             pass
         else:
             data_list.append({"timestamp" :timestamp, "level": None, "rain" : None, "forecast": None, "model_rain" : None})
@@ -239,7 +232,7 @@ def create_json(river, data):
 
     return output
 
-def upload_json(output, filename): 
+def upload_json(testing, output, filename): 
     with open(filename, 'w') as f:
         json.dump(output, f)
     
@@ -260,26 +253,36 @@ def upload_json(output, filename):
         else:
             ftp.storbinary("STOR " + filename, open(filename), 1024)
 
+def run_model(testing):
+    river = "dart"
+    limit = 200
 
-river = "dart"
-limit = 200
+    data = get_data(river, limit)
 
-data = get_data(river, limit)
-
-data = add_missing_timestamps(data)
-
-
-data = calculate_rain(data)
-
-#pretty_print(data)
+    data = add_missing_timestamps(data)
 
 
+    data = calculate_rain(data)
 
-data = model(data)
-
-#pretty_print2(data)
-
-output = create_json(river, data)
+    #pretty_print(data)
 
 
-upload_json(output, river + '.json')
+
+    data = model(data)
+
+    #pretty_print2(data)
+
+    output = create_json(river, data)
+
+
+    upload_json(testing, output, river + '.json')
+
+
+def main():
+    run_model()
+
+if __name__ == "__main__":
+    main()
+
+
+

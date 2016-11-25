@@ -29,7 +29,7 @@ import sys
 river = 'dart'
 database = 'data.db'
 
-def level():
+def level(testing=False):
 
     end_date = strftime("%Y-%m-%d", gmtime())
     start_date =  strftime("%Y-%m-%d", gmtime(calendar.timegm(gmtime()) - 86400))  
@@ -173,7 +173,12 @@ def png(timestamp): #gets image from metoffice and returns the rain in the dart 
 # Get's current time - 16 minutes and rounded down to 15 minute interval
 #timestamp = gettime()
 #updates sql with all level update for previous and current day
-level() 
+def main():
+    level(testing) 
+
+
+if __name__ == "__main__":
+    main()
 # gets latest radar image and returns rain from dart catchment
 #rain = png(timestamp)
 #interpolates forecast data. Could this be in forecast.py?

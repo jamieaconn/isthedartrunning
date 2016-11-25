@@ -10,8 +10,12 @@ def main():
     testing = False
     if len(sys.argv) > 1:
         testing = sys.argv[1] == 'testing' 
-    model.run_model(testing)    
+    forecast.update_forecast_rainfall(testing)
+    model.run_model(testing)
+    
     update_dart_level.level(testing)
+    update_dart_rain.rain(testing)
+    nevis.rain_and_level(testing)
 if __name__ == '__main__':
     main()
 

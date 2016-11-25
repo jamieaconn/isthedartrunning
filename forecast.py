@@ -103,25 +103,30 @@ def png(river, model_time, hour, timestamp): #gets image from metoffice and retu
     return(rain/(pixels * 4)) #remember that this is rain rate and time period is 15 mintues so we need to / 4
 
 
+def update_forecast_rainfall(testing):
+    metoff = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/all/json/capabilities?key=78e077ee-7ec6-408c-9b04-b23480cbb589'
+    response = urllib2.urlopen(metoff)
+    data = json.load(response)
 
-metoff = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/all/json/capabilities?key=78e077ee-7ec6-408c-9b04-b23480cbb589'
-response = urllib2.urlopen(metoff)
-data = json.load(response)
+    # ret=rns the most recent model run timestamp
+    model_time = data["Layers"]["Layer"][0]["Service"]["Timesteps"]["@defaultTime"]
+    #Remove last bit of the timestamp
+    model_time = model_time[:16]
 
-# ret=rns the most recent model run timestamp
-model_time = data["Layers"]["Layer"][0]["Service"]["Timesteps"]["@defaultTime"]
-#Remove last bit of the timestamp
-model_time = model_time[:16]
+    #returns all of the images available as hours since the model rain
+    timesteps =  data["Layers"]["Layer"][0]["Service"]["Timesteps"]["Timestep"]
+    #print model_time
+    for step in timesteps:
+        #print step
+        timestamp = time_fct(model_time, step)
+        for river in rivers:
+            #print timestamp
+            rain = png(river, model_time, step, timestamp)
+            #print rain
+            update_sql(river, timestamp, rain)
 
-#returns all of the images available as hours since the model rain
-timesteps =  data["Layers"]["Layer"][0]["Service"]["Timesteps"]["Timestep"]
-#print model_time
-for step in timesteps:
-    #print step
-    timestamp = time_fct(model_time, step)
-    for river in rivers:
-        #print timestamp
-        rain = png(river, model_time, step, timestamp)
-        #print rain
-        update_sql(river, timestamp, rain)
+def main():
+    update_forecast_rainfall()
+if __name__ == "__main__":
+    main()
 

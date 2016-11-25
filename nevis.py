@@ -47,7 +47,7 @@ def g_inv(x):
     return (x - scale_a) / scale_m
 
 
-def sql_update():
+def rain_and_level(testing=False):
     # UPDATES DB WITH LATEST LEVELS AND RAINFALL
 
     # Get csv for level for the last 24 hours
@@ -345,9 +345,12 @@ def time_fct(model_time, step): # Takes the model timestamp and adds the number 
     return strftime("%Y-%m-%dT%H:%M" ,gmtime(calendar.timegm(time) + (3600 * step)))
 
 
+def main():
+    rain_and_level()
 
+if __name__ == "__main__":
+    main()
 #Update database with newest rain values and river levels
-sql_update()
 #interpolates forecast data. Could this be in forecast.py?
 #interpolate()
 #Runs the model to create the predictions! Updates sql
