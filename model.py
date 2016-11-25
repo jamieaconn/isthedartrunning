@@ -28,6 +28,8 @@ import ftplib
 import sqlite3 as lite
 import sys
 
+
+from local_info import facebook_access 
 database = 'data.db'
 
 
@@ -256,8 +258,7 @@ def upload_json(testing, output, filename):
 
 
 def post_facebook():
-
-    r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : '246515359021141|2f518c938bc9d1b83299ba40b1cc6379'})
+    r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : facebook_access})
 
 
     #print(r.status_code, r.reason)
