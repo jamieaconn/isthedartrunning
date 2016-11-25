@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from operator import itemgetter
 
+import requests
 import datetime
 import numpy as np
 from scipy import misc
@@ -27,13 +28,10 @@ import ftplib
 import sqlite3 as lite
 import sys
 
-testing = False
 
-if testing:
-    database = 'test.db'
-    os.system("cp data.db test.db")
-else:
-    database = 'data.db'
+from local_info import facebook_access 
+database = 'data.db'
+
 
 time_format = "%Y-%m-%dT%H:%M"
 
@@ -86,7 +84,7 @@ def add_missing_timestamps(data_list):
     while epoch < max_epoch:
         epoch += 900
         timestamp = strftime(time_format, gmtime(epoch))
-        if [line for line in data if line['timestamp'] == timestamp]:
+        if [line for line in data_list if line['timestamp'] == timestamp]:
             pass
         else:
             data_list.append({"timestamp" :timestamp, "level": None, "rain" : None, "forecast": None, "model_rain" : None})
@@ -226,55 +224,78 @@ def create_json(river, data):
         dum = [line['timestamp'] for line in data if (line['predict'] > 0.7) & (line['timestamp'] > current_time)]
         if dum:
             next_up = min(dum) 
+            next_up = timegm(strptime(next_up, time_format)) * 1000
+
     output = {}       
-    output['current_time'] = current_time
+    output['current_time'] = timegm(strptime(current_time, time_format)) * 1000
     output['current_level'] = current_level 
-    output['next_up'] = next_up 
+    output['next_up'] = next_up
     output['values'] = result
     #print json.dumps(output, indent =4)
-    with open('/var/www/html/dart.json', 'w') as f:
+
+    return output
+
+def upload_json(testing, output, filename): 
+    with open(filename, 'w') as f:
         json.dump(output, f)
+    
+    if testing:
+        with open('/var/www/html/dart.json', 'w') as f:
+            json.dump(output, f)
 
-    with open('dart.json', 'w') as f:
-        json.dump(output, f)
-
-
-def upload_json(filename):
-    ftp_user = '2236286'
-    ftp_url = 'isthedartrunning.co.uk'
-    ftp_password = 'ESCC2902'
-    ftp = ftplib.FTP(ftp_url)
-    ftp.login(ftp_user, ftp_password)
-    ftp.cwd('isthedartrunning')
-
-    ext = os.path.splitext(filename)[1]
-    if ext in (".txt", ".htm", ".html"):
-        ftp.storlines("STOR " + filename, open(filename))
     else:
-        ftp.storbinary("STOR " + filename, open(filename, "rb"), 1024)
+        from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
+        ftp = ftplib.FTP(ftp_url)
+        ftp.login(ftp_user, ftp_pass)
+        if ftp_dir is not None:
+            ftp.cwd(ftp_dir)
+
+        ext = os.path.splitext(filename)[1]
+        if ext in (".txt", ".htm", ".html"):
+            ftp.storlines("STOR " + filename, open(filename))
+        else:
+            ftp.storbinary("STOR " + filename, open(filename), 1024)
+
+
+def post_facebook():
+    r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : facebook_access})
+
+
+    #print(r.status_code, r.reason)
+    #print(r.text[:300] + '...')
+
+
+def run_model(testing=False):
+    river = "dart"
+    limit = 200
+
+    data = get_data(river, limit)
+
+    data = add_missing_timestamps(data)
+
+
+    data = calculate_rain(data)
+
+    #pretty_print(data)
 
 
 
+    data = model(data)
 
-river = "dart"
-limit = 200
+    #pretty_print2(data)
 
-data = get_data(river, limit)
-
-data = add_missing_timestamps(data)
+    output = create_json(river, data)
 
 
-data = calculate_rain(data)
+    upload_json(testing, output, river + '.json')
+    
+    post_facebook()
 
-#pretty_print(data)
+def main():
+    run_model()
 
-
-
-data = model(data)
-
-#pretty_print2(data)
-
-create_json(river, data)
+if __name__ == "__main__":
+    main()
 
 
-upload_json(river + '.json')
+#test

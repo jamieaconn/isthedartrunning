@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 import datetime
 import numpy as np
 from scipy import misc
@@ -24,24 +27,9 @@ import sqlite3 as lite
 import sys
 
 river = 'dart'
-testing = 0
+database = 'data.db'
 
-if (testing == 1):
-    err_print = 1 # st to 1 for lots of printing messages : )
-    image = 'test.png'
-    database = 'test.db'
-    os.system("cp data.db test.db")
-    cur_time = strftime("%Y-%m-%dT%H:%M", gmtime())
-    image_name = "testing/" + cur_time + ".png"
-else:
-    err_print = 0 # st to 1 for lots of printing messages : )
-    image = 'graph.png'
-    database = 'data.db'
-    cur_time = strftime("%Y-%m-%dT%H:%M", gmtime())
-    image_name = "forecast/" + cur_time + ".png"
-
-
-def level():
+def level(testing=False):
 
     end_date = strftime("%Y-%m-%d", gmtime())
     start_date =  strftime("%Y-%m-%d", gmtime(calendar.timegm(gmtime()) - 86400))  
@@ -55,15 +43,10 @@ def level():
         con = lite.connect(database)
         cur = con.cursor()
         data = r.json()
-        if(err_print ==1):
-            print "Obtaining level data from: " + url
         for x in range(0, len(data['items'])):
             time = data['items'][x]['dateTime']
             time = time[:16]
             value = data['items'][x]['value']
-            if(err_print == 1):
-                print time
-                print str(value)
             cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time))
             cur.execute("UPDATE {river} SET level=({level_val}), predict=({predict_val}) WHERE timestamp = ('{time_val}')".format(river = river, level_val = value, predict_val = value, time_val = time))
         
@@ -73,8 +56,6 @@ def level():
 
 
 def sql_plot(timestamp):
-    if (err_print == 1):
-        print "generating plot..."    
     con = lite.connect(database)
     cur = con.cursor()
     query = """
@@ -109,8 +90,6 @@ def sql_plot(timestamp):
     plt.plot(dates, values, label = legend)
     plt.gcf().autofmt_xdate()
     plt.legend(loc = 'upper right')
-    if (err_print == 1):
-        print image_name
     plt.savefig(image_name)
 
     ftp = ftplib.FTP("ftp.ipage.com")
@@ -130,8 +109,6 @@ def gettime():
         timestamp = strftime("%Y-%m-%dT%H:15", time)
     else:
         timestamp = strftime("%Y-%m-%dT%H:00", time)
-    if (err_print == 1):
-        print "Current time - 16 min rounded down to nearest 15 min: " + timestamp
     return(timestamp)
 
 def upload(ftp, file):
@@ -190,15 +167,18 @@ def png(timestamp): #gets image from metoffice and returns the rain in the dart 
                 rain = rain + 32
     os.chdir("..")
     pixels = 4*4
-    if(err_print == 1):
-        print "latest_rain: " + str(rain/64)
     return(rain/(pixels * 4)) #remember that this is rain rate and time period is 15 mintues so we need to / 4
 
 
 # Get's current time - 16 minutes and rounded down to 15 minute interval
 #timestamp = gettime()
 #updates sql with all level update for previous and current day
-level() 
+def main():
+    level(testing) 
+
+
+if __name__ == "__main__":
+    main()
 # gets latest radar image and returns rain from dart catchment
 #rain = png(timestamp)
 #interpolates forecast data. Could this be in forecast.py?

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import datetime
 import numpy as np
 from scipy import misc
@@ -24,10 +22,34 @@ from subprocess import call
 import ftplib
 import sqlite3 as lite
 import sys
+import csv
+database = 'data.db'
 
-def create_db(river, database):
-    con = lite.connect(database)
-    cur = con.cursor()
-    cur.execute("CREATE TABLE {river}(Id INTEGER PRIMARY KEY, timestamp TIMESTAMP UNIQUE, rain FLOAT, level FLOAT, predict FLOAT)".format(river = river))
-    con.commit()
-    con.close()
+
+
+
+con = lite.connect(database)
+cur = con.cursor()
+
+
+
+query = """
+
+    SELECT *
+    FROM nevis 
+"""
+
+cur.execute(query)
+
+
+with open('nevis.csv', 'wb') as csv_file:
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow([i[0] for i in cur.description]) # write headers
+    csv_writer.writerows(cur)
+
+con.commit()
+con.close()
+
+
+
+
