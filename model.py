@@ -207,7 +207,7 @@ def create_json(river, data):
     
     current_time = gettime()
     current_row = [line for line in data if line['timestamp'] == current_time]
-     
+    current_epoch_ms = timegm(strptime(current_time, time_format)) * 1000 
     if current_row:
         if current_row[0]['level'] is not None: 
             current_level = current_row[0]['level']
@@ -216,18 +216,31 @@ def create_json(river, data):
     else:
         current_level = 0.123456789
         print "ERROR: Could not fetch level or predict at " + str(current_time)
+    text = "NO"
     next_up = None
-    if current_level < 0.7:
+
+    if current_level >= 1.6:
+        text = "THE DART IS MASSIVE"
+    elif current_level >= 0.7:
+        text = "YES"
+    else:
         dum = [line['timestamp'] for line in data if (line['predict'] > 0.7) & (line['timestamp'] > current_time)]
         if dum:
             next_up = min(dum) 
             next_up = timegm(strptime(next_up, time_format)) * 1000
+            if (next_up - current_epoch_ms) < 3600000:
+                text = "THE DART WILL BE UP SHORTLY"
+
+
+        
 
     output = {}       
-    output['current_time'] = timegm(strptime(current_time, time_format)) * 1000
+    output['current_time'] = current_epoch_ms
     output['current_level'] = current_level 
     output['next_up'] = next_up
+    output['text'] = text
     output['values'] = result
+    
     #print json.dumps(output, indent =4)
 
     return output
@@ -289,7 +302,7 @@ def run_model(testing=False):
     post_facebook()
 
 def main():
-    run_model()
+    run_model(True)
 
 if __name__ == "__main__":
     main()
