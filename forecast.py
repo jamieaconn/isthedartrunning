@@ -13,9 +13,6 @@ from tempfile import NamedTemporaryFile
 import shutil
 import requests
 import json
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from numpy import recfromcsv
 from subprocess import call
 import ftplib
