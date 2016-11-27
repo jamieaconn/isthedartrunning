@@ -97,7 +97,7 @@ def png(river, model_time, hour, timestamp): #gets image from metoffice and retu
     os.chdir("..")
     os.chdir("..")
     pixels = (bounds[river]['Nmax'] - bounds[river]['Nmin']) * (bounds[river]['Emax'] - bounds[river]['Emin'])
-    return(rain/(pixels * 4)) #remember that this is rain rate and time period is 15 mintues so we need to / 4
+    return(rain/(pixels)) 
 
 
 def update_forecast_rainfall(testing):
