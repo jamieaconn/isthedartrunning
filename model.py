@@ -250,9 +250,7 @@ def upload_json(testing, output, filename):
         json.dump(output, f)
     
     if testing:
-        with open('/var/www/html/dart.json', 'w') as f:
-            json.dump(output, f)
-
+        pass
     else:
         from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
         ftp = ftplib.FTP(ftp_url)
