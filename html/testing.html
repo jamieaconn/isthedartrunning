@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <title>River Dart Levels</title>
+
+</head>
+
+<body>
+    <div class='updated'></div>
+    <div id='chart'></div>
+
+
+</body>
+
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://www.google.com/jsapi"></script>
+
+    <script type="text/javascript">
+
+        // Load the Visualization API and the corechart package.
+        function drawChart() {
+            var jsonData = $.ajax({
+                url: "dart.json",
+                dataType: "json",
+                async: false
+            }).done(function (results) {
+                document.querySelector('.updated').innerHTML = "Updated:   " + new Date(results.current_time);
+                var data = new google.visualization.DataTable();
+                data.addColumn('datetime', 'Time');
+                data.addColumn('number', 'Rain');
+                data.addColumn('number', 'Level');
+                data.addColumn('number', 'Prediction');
+
+                $.each(results.values, function (i, row) {
+                    data.addRow([
+                        (new Date(row.timestamp)), 
+                        parseFloat(row.rain),
+                        parseFloat(row.level),
+                        parseFloat(row.predict)
+                    ]);
+                });
+
+                var options = {
+                    title : "The River Dart",
+                    seriesType: 'line',
+                    lineWidth: 4,
+                    width : 1700, 
+                    height : 800,
+                    hAxis : {
+                        format: 'E HH:mm'
+                    },
+                    vAxis : {
+                        viewWindow: {
+                            max: 2,
+                            min: 0
+                        }
+                    },
+                    series : {
+                        0: { type: 'bars' },
+                        2: { lineDashStyle: [4, 4] }
+                    },
+                    colors: ['#999999', '#1c91c0', '#1c91c0']
+
+                };
+
+                var chart = new google.visualization.ComboChart($('#chart').get(0));
+                chart.draw(data, options);
+
+
+            });  
+            
+        }
+
+        google.load('visualization', '1', {
+            packages: ['corechart']
+        });
+
+        google.setOnLoadCallback(drawChart);
+
+    </script>
+
+
+</html>

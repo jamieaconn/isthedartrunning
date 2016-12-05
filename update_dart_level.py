@@ -170,7 +170,7 @@ def png(timestamp): #gets image from metoffice and returns the rain in the dart 
 #timestamp = gettime()
 #updates sql with all level update for previous and current day
 def main():
-    level(testing) 
+    level(True) 
 
 
 if __name__ == "__main__":
