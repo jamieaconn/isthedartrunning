@@ -123,7 +123,7 @@ def update_forecast_rainfall(testing):
             update_sql(river, timestamp, rain)
 
 def main():
-    update_forecast_rainfall()
+    update_forecast_rainfall(False)
 if __name__ == "__main__":
     main()
 
