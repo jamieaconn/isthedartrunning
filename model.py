@@ -24,10 +24,12 @@ from subprocess import call
 import ftplib
 import sqlite3 as lite
 import sys
-
+import os.path
 
 from local_info import facebook_access 
-database = 'data.db'
+
+fdir = os.path.abspath(os.path.dirname(__file__))
+database = os.path.join(fdir, 'data.db')
 
 
 time_format = "%Y-%m-%dT%H:%M"
@@ -263,9 +265,9 @@ def upload_json(testing, output, filename):
 
         ext = os.path.splitext(filename)[1]
         if ext in (".txt", ".htm", ".html"):
-            ftp.storlines("STOR " + filename, open(filename))
+            ftp.storlines("STOR " + filename, open(os.path.join(fdir, filename)))
         else:
-            ftp.storbinary("STOR " + filename, open(filename), 1024)
+            ftp.storbinary("STOR " + filename, open(os.path.join(fdir, filename)), 1024)
 
 
 def post_facebook():
@@ -297,7 +299,7 @@ def run_model(testing=False):
 
     output = create_json(river, data)
 
-
+    
     upload_json(testing, output, river + '.json')
     
     post_facebook()

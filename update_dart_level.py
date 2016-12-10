@@ -21,9 +21,12 @@ from subprocess import call
 import ftplib
 import sqlite3 as lite
 import sys
+import os.path
+
+fdir = os.path.abspath(os.path.dirname(__file__))
 
 river = 'dart'
-database = 'data.db'
+database = os.path.join(fdir, 'data.db')
 
 def level(testing=False):
 
