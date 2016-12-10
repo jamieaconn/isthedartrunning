@@ -70,6 +70,9 @@ def get_data(river, limit):
     data_list =  [{"timestamp" : line[0], "rain" : line[1], "level" : line[2], "forecast" : line[3]} for line in result]
     for line in data_list:
         line['model_rain'] = None
+	if line['forecast']:
+		#line['forecast'] = line['forecast'] / 4
+		pass
     return data_list
 
 def add_missing_timestamps(data_list):
@@ -298,7 +301,6 @@ def run_model(testing=False):
     upload_json(testing, output, river + '.json')
     
     post_facebook()
-
 def main():
     run_model(True)
 
