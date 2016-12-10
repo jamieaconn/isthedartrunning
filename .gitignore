@@ -5,3 +5,4 @@ local_info.py
 image
 db_from_ops.py
 *.pyc
+html/.ipynb_checkpoints/*

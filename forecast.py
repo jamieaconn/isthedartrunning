@@ -18,8 +18,14 @@ from subprocess import call
 import ftplib
 import sqlite3 as lite
 import sys
+import os.path
 
-database = 'data.db'
+fdir = os.path.abspath(os.path.dirname(__file__))
+
+
+
+
+database = os.path.join(fdir, 'data.db')
 
 rivers = ['dart', 'nevis']
 bounds = {
@@ -55,7 +61,7 @@ def time_fct(model_time, step): # Takes the model timestamp and adds the number 
 
 def png(river, model_time, hour, timestamp): #gets image from metoffice and returns the rain in the dart catchment
 
-    os.chdir("image/forecast")
+    os.chdir(os.path.join(fdir, "image/forecast"))
     if (hour < 10):
         url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxfcs//Precipitation_Rate//png?RUN=" + model_time + ":00Z&FORECAST=" + str(hour) + "&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
     else: 
