@@ -25,6 +25,7 @@
 
   <body>
     <div id="fb-root"></div>
+    
     <script>(function(d, s, id) {
       var js, fjs = d.getElementsByTagName(s)[0];
       if (d.getElementById(id)) return;
@@ -44,9 +45,14 @@
 
        </div>
 
+        
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-</body>
+
+
+
 <div class="fb-like" data-href="http://isthedartrunning.co.uk" data-layout="button_count" data-action="like" data-size="small" data-show-faces="true" data-share="true"></div>
+<p> <a href="/graph.html">graph</a> </p>
+</body>
 <script>
 
     function getQueryVariable(variable)
