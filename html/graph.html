@@ -28,7 +28,7 @@
                 dataType: "json",
                 async: false
             }).done(function (results) {
-                document.querySelector('.updated').innerHTML = "Updated:   " + new Date(results.current_time);
+                document.querySelector('.updated').innerHTML = "Updated:   " + new Date(results.current_time / 1000);
                 var data = new google.visualization.DataTable();
                 data.addColumn('datetime', 'Time');
                 data.addColumn('number', 'Rain');
