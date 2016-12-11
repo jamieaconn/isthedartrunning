@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-
+    <link rel='shortcut icon' href='favicon.ico' type='image/x-icon'/ >
     <title>River Dart Levels</title>
     <meta property="og:url"                content="http://www.isthedartrunning.co.uk" />
     <meta property="og:type"               content="website" />

@@ -279,7 +279,6 @@ def model(testing=False):
 
     output = {}       
     output['current_time'] = current_time.value / 1000
-    print current_time.value
     output['current_level'] = current_level 
     output['text'] = text
     output['values'] = values
