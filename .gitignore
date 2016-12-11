@@ -6,3 +6,4 @@ image
 db_from_ops.py
 *.pyc
 html/.ipynb_checkpoints/*
+html/testing_commands.txt

@@ -251,10 +251,11 @@ def create_json(river, data):
     return output
 
 def upload_json(testing, output, filename): 
-    with open(filename, 'w') as f:
+    with open(os.path.join(fdir, filename), 'w') as f:
         json.dump(output, f)
     
     if testing:
+        shutil.copyfile(os.path.join(fdir, filename), '/home/ubuntu/testing/isthedartrunning/html/' + filename)
         pass
     else:
         from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
