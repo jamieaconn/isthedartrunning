@@ -8,3 +8,4 @@ db_from_ops.py
 html/.ipynb_checkpoints/*
 html/php_command.sh
 sample_data.db
+dart_stats.json

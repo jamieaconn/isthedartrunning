@@ -294,10 +294,10 @@ def upload_json(testing, output, filename):
     
     if testing:
         with open(os.path.join(fdir, 'html/' + filename), 'w') as f:
-            json.dump(output, f)
+            json.dump(output, f, indent=4)
     else:
         with open(os.path.join(fdir, filename), 'w') as f:
-            json.dump(output, f)
+            json.dump(output, f, indent=4)
 
         from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
         ftp = ftplib.FTP(ftp_url)
