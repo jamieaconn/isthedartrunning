@@ -307,9 +307,9 @@ def upload_json(testing, output, filename):
 
         ext = os.path.splitext(filename)[1]
         if ext in (".txt", ".htm", ".html"):
-            ftp.storlines("STOR " + filename, open(filename))
+            ftp.storlines("STOR " + filename, open(os.path.join(fdir, filename)))
         else:
-            ftp.storbinary("STOR " + filename, open(filename), 1024)
+            ftp.storbinary("STOR " + filename, open(os.path.join(fdir, filename)), 1024)
 
 # In[85]:
 def post_facebook():
