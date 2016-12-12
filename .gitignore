@@ -6,6 +6,6 @@ image
 db_from_ops.py
 *.pyc
 html/.ipynb_checkpoints/*
-html/model.ipynb
 html/php_command.sh
-html/sample_data.db
+sample_data.db
+dart_stats.json
