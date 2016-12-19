@@ -37,7 +37,7 @@
 
                 $.each(results.values, function (i, row) {
                     data.addRow([
-                        (new Date(row.timestamp)), 
+                        (new Date(row.timestamp / 1000)), 
                         parseFloat(row.rain),
                         parseFloat(row.level),
                         parseFloat(row.predict)
