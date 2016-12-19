@@ -26,9 +26,9 @@ sample_data = False
 time_format = "%Y-%m-%dT%H:%M"
 
 
-k = 0.12
-scale_m = 1.91
-scale_a = 0.234
+k = 0.07
+scale_m = 1.943
+scale_a = 0.263
 delay = np.timedelta64(60, 'm') # 60 minutes
 
 def f(x):

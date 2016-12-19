@@ -16,7 +16,7 @@
         if (strlen($text) < 4){
             $img = "http://www.isthedartrunning.co.uk/" . $text . ".jpg";
         } else {
-            $img = "http://www.isthedartrunning.co.uk/YES.jpg";
+            $img = "http://www.isthedartrunning.co.uk/EXCITED.jpg";
         }
     ?>
     <meta property="og:description"        content="<?= $text ?>" />

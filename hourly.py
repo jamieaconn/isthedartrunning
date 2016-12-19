@@ -15,7 +15,7 @@ def main():
     
     update_dart_level.level(testing)
     update_dart_rain.rain(testing)
-    nevis.rain_and_level(testing)
+    #nevis.rain_and_level(testing)
 if __name__ == '__main__':
     main()
 
