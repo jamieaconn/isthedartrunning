@@ -1,87 +1,43 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-
-    <title>River Dart Levels</title>
-
-</head>
-
-<body>
-    <div class='updated'></div>
-    <div id='chart'></div>
-
-
-</body>
-
-
+<html lang="en">
+  <head>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
     <script src="https://www.google.com/jsapi"></script>
 
-    <script type="text/javascript">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
-        // Load the Visualization API and the corechart package.
-        function drawChart() {
-            var jsonData = $.ajax({
-                url: "dart.json",
-                dataType: "json",
-                async: false
-            }).done(function (results) {
-                document.querySelector('.updated').innerHTML = "Updated:   " + new Date(results.current_time / 1000);
-                var data = new google.visualization.DataTable();
-                data.addColumn('datetime', 'Time');
-                data.addColumn('number', 'Rain');
-                data.addColumn('number', 'Level');
-                data.addColumn('number', 'Prediction');
+    <link href="mycss.css" rel="stylesheet">
+<!-- Bootstrap core CSS -->
 
-                $.each(results.values, function (i, row) {
-                    data.addRow([
-                        (new Date(row.timestamp / 1000)), 
-                        parseFloat(row.rain),
-                        parseFloat(row.level),
-                        parseFloat(row.predict)
-                    ]);
-                });
-
-                var options = {
-                    title : "The River Dart",
-                    seriesType: 'line',
-                    lineWidth: 4,
-                    width : 1700, 
-                    height : 800,
-                    hAxis : {
-                        format: 'E HH:mm'
-                    },
-                    vAxis : {
-                        viewWindow: {
-                            max: 2,
-                            min: 0
-                        }
-                    },
-                    series : {
-                        0: { type: 'bars' },
-                        2: { lineDashStyle: [4, 4] }
-                    },
-                    colors: ['#999999', '#1c91c0', '#1c91c0']
-
-                };
-
-                var chart = new google.visualization.ComboChart($('#chart').get(0));
-                chart.draw(data, options);
+    <title>TESTING</title>
 
 
-            });  
-            
-        }
-
-        google.load('visualization', '1', {
-            packages: ['corechart']
-        });
-
-        google.setOnLoadCallback(drawChart);
-
-    </script>
 
 
+  </head>
+
+  <body>
+     <div class='updated'></div>
+
+    <div class="row">
+      <div class="col-12">
+        <div id="chart_div" class="chart">
+      </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="script.js"></script>
+
+  </body>
 </html>
+
+
+
+
+
