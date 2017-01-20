@@ -5,14 +5,14 @@ import update_dart_level
 import update_dart_rain
 import nevis
 import model
-
+import get_radar
 def main():
     testing = False
     if len(sys.argv) > 1:
         testing = sys.argv[1] == 'testing' 
     forecast.update_forecast_rainfall(testing)
     model.run_model(testing)
-    
+    get_radar.get_png()
     update_dart_level.level(testing)
     update_dart_rain.rain(testing)
     #nevis.rain_and_level(testing)
