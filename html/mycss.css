@@ -4,25 +4,74 @@
 }
 
 
-.fb_iframe_widget, .fb_iframe_widget span, .fb_iframe_widget span iframe[style] {
-        width: 100%; !important;
-        height: auto !important;
-        transform: scale(1.4);
+
+
+
+/* MOBILE CSS */
+
+@media screen and (max-width: 1000px) {
+
+  .fb_iframe_widget, .fb_iframe_widget span, .fb_iframe_widget span iframe[style] {
+          height: auto !important;
+          transform: scale(1.5);
+          padding: 30px 0;
+  }
+
+  #yesno {
+       text-align: center; 
+       font-size: 35vw; 
+       font-weight: bold; 
+       padding-top:200px;
+       font-family: Arial, Helvetica, sans-serif;
+  }
+
+
+  .button-link {
+      padding: 20px 25px;
+      font-size: 3vw;
+  }
 }
+
+
+/* DESKTOP CSS */
+
+@media screen and (min-width: 1001px) {
+
+  .fb_iframe_widget, .fb_iframe_widget span, .fb_iframe_widget span iframe[style] {
+          height: auto !important;
+          transform: scale(1);
+  }
+
+  #yesno {
+       text-align: center; 
+       font-size: 25vw; 
+       font-weight: bold; 
+       font-family: Arial, Helvetica, sans-serif;
+       padding-top: 100px
+  }
+
+
+  .button-link {
+      padding: 10px 15px;
+      font-size: 1vw;
+  }
+
+}
+
 
 #fb-root {
     display: none;
 }
 
-#yesno {
-     text-align: center; 
-     font-size: 250px; 
-     font-weight: bold; 
-     line-height: 500px; 
-     font-family: Arial, Helvetica, sans-serif;"
-}
 
 #fb-container{
+    background: none;
+    position: relative;
+    text-align: center;
+}
+
+
+#link-container{
     background: none;
     position: relative;
     text-align: center;
@@ -30,12 +79,35 @@
 }
 
 
-
-a:link, a:visited {
+.button-link {
+    background: rgba(0, 0, 0, 0.5);
+    color: #FFF;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    border: solid 1px #20538D;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+    -webkit-transition-duration: 0.2s;
+    -moz-transition-duration: 0.2s;
+    transition-duration: 0.2s;
     text-decoration: none;
-    display: inline-block;
-    font-weight: bold;
-    color: black;
-
-     font-family: Arial, Helvetica, sans-serif;"
 }
+
+.button-link:hover, .button-link:focus { 
+    background: #356094;
+    border: solid 1px #2A4E77;
+    text-decoration: none;
+}
+.button-link:active {
+    -webkit-box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+    -moz-box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+    background: #2E5481;
+    border: solid 1px #203E5F;
+}
+
+
+
