@@ -43,7 +43,7 @@ def gettime():
 
 def get_png(): #gets image from metoffice and returns the rain in the dart catchment
     timestamp = gettime()
-    os.chdir("image/radar")
+    os.chdir("~/testing/isthedartrunning/image/radar")
     url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxobs//RADAR_UK_Composite_Highres//png?TIME=" + timestamp + ":00Z&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
 
 
