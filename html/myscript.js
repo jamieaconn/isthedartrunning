@@ -36,7 +36,7 @@ $.getJSON('dart.json', function(data) {
 
 setInterval(function() {
         window.location.reload();
-}, 300000); 
+}, 900000); 
 
 
 
