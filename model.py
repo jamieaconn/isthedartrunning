@@ -63,7 +63,7 @@ def model(testing=False):
     else:
         database = os.path.join(fdir,  'data.db')
     river = 'dart'
-    limit = 200
+    limit = 130
     con = lite.connect(database)
     cur = con.cursor()
     query = """
@@ -187,7 +187,11 @@ def model(testing=False):
 
 # Run iteration for indexes > latest_level_update
     storage = init_storage
-    df_model = df[(df.index > pd.Timestamp(latest_level_time))]
+
+# Remove forecast from the model
+    df_model = df[(df.index > pd.Timestamp(latest_level_time)) & (df.index <= pd.Timestamp(latest_rain_time + delay))]
+
+    #df_model = df[(df.index > pd.Timestamp(latest_level_time))]
     for i,r in df_model.iterrows():
         rain = df.loc[i - delay, 'model_rain']
         predict = g(f(storage))
