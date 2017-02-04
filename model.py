@@ -148,6 +148,7 @@ def model(testing=False):
 
 # multiply by 4 to get rain rate per hour
     df['rain'] = df['rain'] * 2
+    df.loc[(df.index > latest_rain_time), 'rain'] = 0
 
 
 # In[114]:
@@ -177,7 +178,7 @@ def model(testing=False):
 
 # In[117]:
 
-    df['model_rain'] = df['forecast'].fillna(0) + df['rain'].fillna(0)
+    df['model_rain'] = df['rain'].fillna(0) + df['forecast'].fillna(0)
     df['storage'] = np.nan
     df['predict'] = np.nan
 
@@ -189,7 +190,7 @@ def model(testing=False):
     storage = init_storage
 
 # Remove forecast from the model
-    df_model = df[(df.index > pd.Timestamp(latest_level_time)) & (df.index <= pd.Timestamp(latest_rain_time + delay))]
+    df_model = df[(df.index > pd.Timestamp(latest_level_time))]
 
     #df_model = df[(df.index > pd.Timestamp(latest_level_time))]
     for i,r in df_model.iterrows():
