@@ -27,7 +27,7 @@ $.getJSON('dart.json', function(data) {
     text = data.text;   
     console.log(next_up - current_time);
     if (text.length < 5){
-        document.querySelector('#message').innerHTML = 'THE DART IS MASSIVE'; 
+        document.querySelector('#yesno').innerHTML = text;
     } else {
 
         document.querySelector('#message').innerHTML = text; 
