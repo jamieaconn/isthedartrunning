@@ -54,6 +54,13 @@ def update_sql(river, time_val, forecast_val):
     con.close()
 
 
+def upload(ftp, file):
+    ext = os.path.splitext(file)[1]
+    if ext in (".txt", ".htm", ".html"):
+        ftp.storlines("STOR " + file, open(file))
+    else:
+        ftp.storbinary("STOR " + file, open(file, "rb"), 1024)
+
 def time_fct(model_time, step): # Takes the model timestamp and adds the number of hours to get the timestamp for the image forecast
     # Turns string into UTC_struct
     time= strptime(model_time, "%Y-%m-%dT%H:%M")
@@ -61,7 +68,7 @@ def time_fct(model_time, step): # Takes the model timestamp and adds the number 
     return strftime("%Y-%m-%dT%H:%M" ,gmtime(calendar.timegm(time) + (3600 * step)))
 
 
-def png(river, model_time, hour, timestamp): #gets image from metoffice and returns the rain in the dart catchment
+def forecast_png(river, model_time, hour, timestamp): #gets image from metoffice and returns the rain in the dart catchment
 
     os.chdir(os.path.join(fdir, "image/forecast"))
     if (hour < 10):
@@ -126,14 +133,81 @@ def update_forecast_rainfall(testing):
         timestamp = time_fct(model_time, step)
         for river in rivers:
             #print timestamp
-            rain = png(river, model_time, step, timestamp)
+            rain = forecast_png(river, model_time, step, timestamp)
             #print rain
             update_sql(river, timestamp, rain)
 
 
+def level(testing=False):
+
+    end_date = strftime("%Y-%m-%d", gmtime())
+    start_date =  strftime("%Y-%m-%d", gmtime(calendar.timegm(gmtime()) - 86400))  
+    
+    url = 'http://environment.data.gov.uk/flood-monitoring/id/stations/46126/readings?startdate=' + start_date + '&enddate=' + end_date + '&_sorted'
+    r = requests.get(url)
+    if(r.status_code != 200):
+        print "level json request failed"
+        return 0
+    else:
+        con = lite.connect(database)
+        cur = con.cursor()
+        data = r.json()
+        for x in range(0, len(data['items'])):
+            time = data['items'][x]['dateTime']
+            time = time[:16]
+            value = data['items'][x]['value']
+            cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time))
+            cur.execute("UPDATE {river} SET level=({level_val}), predict=({predict_val}) WHERE timestamp = ('{time_val}')".format(river = river, level_val = value, predict_val = value, time_val = time))
+        
+        con.commit()
+        con.close()
 
 
-""" DEPRECIATED """
+
+def sql_plot(timestamp):
+    con = lite.connect(database)
+    cur = con.cursor()
+    query = """
+        SELECT timestamp, predict
+        FROM (
+        SELECT * 
+        FROM 
+            {river}
+        WHERE predict IS NOT NULL OR level IS NOT NULL
+        ORDER BY timestamp DESC
+        LIMIT {plot_range}) 
+
+        ORDER BY
+        timestamp ASC
+
+    """
+    cur.execute(query.format(plot_range= plot_range, river=river ))
+    data =  cur.fetchall()
+
+
+    # get times as datetime object
+    dates =[(datetime.datetime(*(strptime(r[0], "%Y-%m-%dT%H:%M")[0:6]))) for r in data]
+    values = [r[1] for r in data]
+    # PLOT THE PREDICT VALUES AGAINST TIME!!! NOT WORKING YET
+    axes = plt.gca()
+    axes.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    axes.set_ylim([0,2])
+
+    #fig, ax = plt.subplots()
+    #ax.plot_date(dates, values, 'b-')
+    legend = "forecast updated at: UTC" + timestamp 
+    plt.plot(dates, values, label = legend)
+    plt.gcf().autofmt_xdate()
+    plt.legend(loc = 'upper right')
+    plt.savefig(image_name)
+
+    ftp = ftplib.FTP("ftp.ipage.com")
+    ftp.login('isthedartrunningcouk', 'iPage0123!')
+    upload(ftp, image_name)
+    con.commit()       
+    con.close()
+
+
 
 
 def gettime():
@@ -149,6 +223,7 @@ def gettime():
     return(timestamp)
 
 
+""" DEPRECIATED """
 def get_png(): #gets image from metoffice and returns the rain in the dart catchment
     timestamp = gettime()
     url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxobs//RADAR_UK_Composite_Highres//png?TIME=" + timestamp + ":00Z&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
