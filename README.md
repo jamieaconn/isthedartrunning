@@ -50,7 +50,12 @@ sudo apt-get install wget
 
 # download relevant gdrive from https://github.com/prasmussen/gdrive
 chmod +x gdrive-linux-386
-./gdrive-linux-386 about
+mv {filename} ~/gdrive
+~/gdrive about 
 
+# ....follow instructions...
+
+~/gdrive list
+~/gdrive download {data.db filename}
 
 
