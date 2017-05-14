@@ -1,1 +1,6 @@
-testtestte
+numpy==1.11.2
+pandas==0.19.1
+Pillow==2.3.0
+requests==2.2.1
+sqlite3
+scipy
