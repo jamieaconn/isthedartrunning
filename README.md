@@ -11,6 +11,7 @@ sudo apt-get update
 
 ### install git 
 sudo apt-get install git
+
 git config --global core.editor "vim"
 
 ### clone repository
@@ -24,7 +25,7 @@ sudo apt-get install libpng-dev
 
 ### make a few folders
 mkdir image
-mkdir image/radar
+
 mkdir image/forecast
 
 ### install pip
@@ -38,6 +39,7 @@ sudo pip install --upgrade virtualenv
 
 ### create and activate virtualenv
 virtualenv ENV
+
 source ENV/bin/activate
 
 ### install python dependancies
