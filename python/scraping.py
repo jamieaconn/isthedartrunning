@@ -49,18 +49,18 @@ G = np.array([254,   0, 254, 255])
 
 
 
-zero = misc.imread(os.path.join(fdir, 'ref_images/zero.png'))
-one = misc.imread(os.path.join(fdir, 'ref_images/one.png'))
-two = misc.imread(os.path.join(fdir, 'ref_images/two.png'))
-three = misc.imread(os.path.join(fdir, 'ref_images/three.png'))
-four = misc.imread(os.path.join(fdir, 'ref_images/four.png'))
-five = misc.imread(os.path.join(fdir, 'ref_images/five.png'))
-six = misc.imread(os.path.join(fdir, 'ref_images/six.png'))
-seven = misc.imread(os.path.join(fdir, 'ref_images/seven.png'))
-eight = misc.imread(os.path.join(fdir, 'ref_images/eight.png'))
-nine = misc.imread(os.path.join(fdir, 'ref_images/nine.png'))
-dot = misc.imread(os.path.join(fdir, 'ref_images/dot.png'))
-black = misc.imread(os.path.join(fdir, 'ref_images/black.png'))
+zero = misc.imread(os.path.join(fdir, '../ref_images/zero.png'))
+one = misc.imread(os.path.join(fdir, '../ref_images/one.png'))
+two = misc.imread(os.path.join(fdir, '../ref_images/two.png'))
+three = misc.imread(os.path.join(fdir, '../ref_images/three.png'))
+four = misc.imread(os.path.join(fdir, '../ref_images/four.png'))
+five = misc.imread(os.path.join(fdir, '../ref_images/five.png'))
+six = misc.imread(os.path.join(fdir, '../ref_images/six.png'))
+seven = misc.imread(os.path.join(fdir, '../ref_images/seven.png'))
+eight = misc.imread(os.path.join(fdir, '../ref_images/eight.png'))
+nine = misc.imread(os.path.join(fdir, '../ref_images/nine.png'))
+dot = misc.imread(os.path.join(fdir, '../ref_images/dot.png'))
+black = misc.imread(os.path.join(fdir, '../ref_images/black.png'))
 
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine, dot, black]
 
