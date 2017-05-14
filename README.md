@@ -42,3 +42,15 @@ python setup.py
 
 # deactivate virtualenv
 deactivate
+
+# install wget
+sudo apt-get install wget
+
+# get latest data file
+
+# download relevant gdrive from https://github.com/prasmussen/gdrive
+chmod +x gdrive-linux-386
+./gdrive-linux-386 about
+
+
+
