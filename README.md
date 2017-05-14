@@ -1,14 +1,27 @@
 # isthedartrunning
 
+# update apt-get
+sudo apt-get update
 
-CRONTAB
+# install git 
+sudo apt-get install git
 
-0 * * * * python hourly.py
+# install pip
+sudo apt-get install python-pip python-dev build-essential 
 
-15 * * * * python quarter.py
+# upgrade pip
+sudo pip install --upgrade pip
 
-30 * * * * python half.py
+# install virtualenv
+sudo pip install --upgrade virtualenv
 
-45 * * * * python quarter.py
+# create and activate virtualenv
+virtualenv ENV
+source ENV/bin/activate
+
+# install python dependancies
+pip install -r requirements.txt
 
 
+# deactivate virtualenv
+deactivate
