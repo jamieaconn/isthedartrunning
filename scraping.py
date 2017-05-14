@@ -23,6 +23,7 @@ import sqlite3 as lite
 import sys
 import os.path
 
+from scipy import sum, average
 fdir = os.path.abspath(os.path.dirname(__file__))
 
 river = 'dart'
@@ -45,6 +46,79 @@ D = np.array([254, 203,   0, 255])
 E = np.array([254, 152,   0, 255])
 F = np.array([254,   0,   0, 255])
 G = np.array([254,   0, 254, 255])
+
+
+
+zero = misc.imread(os.path.join(fdir, 'ref_images/zero.png'))
+one = misc.imread(os.path.join(fdir, 'ref_images/one.png'))
+two = misc.imread(os.path.join(fdir, 'ref_images/two.png'))
+three = misc.imread(os.path.join(fdir, 'ref_images/three.png'))
+four = misc.imread(os.path.join(fdir, 'ref_images/four.png'))
+five = misc.imread(os.path.join(fdir, 'ref_images/five.png'))
+six = misc.imread(os.path.join(fdir, 'ref_images/six.png'))
+seven = misc.imread(os.path.join(fdir, 'ref_images/seven.png'))
+eight = misc.imread(os.path.join(fdir, 'ref_images/eight.png'))
+nine = misc.imread(os.path.join(fdir, 'ref_images/nine.png'))
+dot = misc.imread(os.path.join(fdir, 'ref_images/dot.png'))
+black = misc.imread(os.path.join(fdir, 'ref_images/black.png'))
+
+numbers = [zero, one, two, three, four, five, six, seven, eight, nine, dot, black]
+
+
+def return_digit(image, dig):
+    n = 4 + dig * 12
+    return image[25:45, n:n+12]
+
+def to_grayscale(arr):
+    if len(arr.shape) == 3:
+        return average(arr, -1)
+    else:   
+        return arr
+
+def match_digit(arr1, arr2):
+    diff = arr2 - arr1
+    return sum(abs(diff))
+
+# Returns the position of the best match out of the possible images definited in numbers
+def digit_to_value(arr):
+    mini = 80000
+    for i in range(0, len(numbers)):
+        dum = match_digit(arr, to_grayscale(numbers[i]))
+        if dum < mini:
+            mini = dum
+            result = i
+    return result
+
+def image_to_value(im, limit):
+    string = ''
+    for i in range(0, limit):
+        dig = digit_to_value(return_digit(im, i))
+        if dig < 10:
+            string += str(dig)
+        elif dig == 10:
+            string += "."
+        elif dig == 11: # case where digit is black image
+            return string
+    return string
+
+def get_rainfall():
+    url = "http://www.dartcom.co.uk/images/weather/vws1003.jpg"
+
+    file = cStringIO.StringIO(urllib2.urlopen(url).read())
+    im = misc.imread(file)
+    im = to_grayscale(im)
+    return float(image_to_value(im, 6))
+
+
+def update_sql_rain(time_val, rain_val):
+    con = lite.connect(database)
+    cur = con.cursor()
+    cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river, time_val = time_val))
+    cur.execute("UPDATE {river} SET rain=({rain_val}) WHERE timestamp = ('{time_val}')".format(river=river, rain_val = rain_val, time_val = time_val))
+    con.commit()
+    con.close()
+
+
 def update_sql(river, time_val, forecast_val):
     con = lite.connect(database)
     cur = con.cursor()
@@ -208,20 +282,23 @@ def sql_plot(timestamp):
     con.close()
 
 
-
-
 def gettime():
-    time = gmtime(calendar.timegm(gmtime()) - 960)  #Current time - 16 minutes
-    if(time[4] > 45): 
-        timestamp = strftime("%Y-%m-%dT%H:45", time)
-    elif(time[4] > 30):
+    time = gmtime()  #Current time - 16 minutes
+    if(time[4] > 15 & time[4] < 45): 
         timestamp = strftime("%Y-%m-%dT%H:30", time)
-    elif(time[4] > 15):
-        timestamp = strftime("%Y-%m-%dT%H:15", time)
     else:
         timestamp = strftime("%Y-%m-%dT%H:00", time)
     return(timestamp)
 
+
+def rain(testing=False):
+
+    timestamp = gettime()
+    rain = get_rainfall()
+
+
+    #Update database with newest rain value
+    update_sql_rain(timestamp, rain)
 
 """ DEPRECIATED """
 def get_png(): #gets image from metoffice and returns the rain in the dart catchment
