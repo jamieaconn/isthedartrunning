@@ -27,7 +27,7 @@ from scipy import sum, average
 fdir = os.path.abspath(os.path.dirname(__file__))
 
 river = 'dart'
-database = os.path.join(fdir, 'data.db')
+database = os.path.join(fdir, '../data.db')
 
 
 
@@ -144,7 +144,7 @@ def time_fct(model_time, step): # Takes the model timestamp and adds the number 
 
 def forecast_png(river, model_time, hour, timestamp): #gets image from metoffice and returns the rain in the dart catchment
 
-    os.chdir(os.path.join(fdir, "image/forecast"))
+    os.chdir(os.path.join(fdir, "../image/forecast"))
     if (hour < 10):
         url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxfcs//Precipitation_Rate//png?RUN=" + model_time + ":00Z&FORECAST=" + str(hour) + "&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
     else: 

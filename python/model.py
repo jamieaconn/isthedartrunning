@@ -17,7 +17,7 @@ import requests
 
 
 fdir = os.path.abspath(os.path.dirname(__file__))
-database = os.path.join(fdir, 'data.db')
+database = os.path.join(fdir, '../data.db')
 # In[102]:
 verbose = False
 sample_data = False
@@ -59,9 +59,9 @@ def model(testing=False):
 
 
     if sample_data:
-        database = os.path.join(fdir, 'sample_data.db')
+        database = os.path.join(fdir, '../sample_data.db')
     else:
-        database = os.path.join(fdir,  'data.db')
+        database = os.path.join(fdir,  '../data.db')
     river = 'dart'
     limit = 130
     con = lite.connect(database)
@@ -326,7 +326,7 @@ def post_facebook():
 
 def run_model(testing=False):
     output = model()
-    filename = 'dart.json'
+    filename = '../dart.json'
     upload_json(testing, output, filename)
     post_facebook()
 
