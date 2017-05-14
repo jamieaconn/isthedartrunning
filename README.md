@@ -5,7 +5,7 @@ sudo apt-get update
 
 # install git 
 sudo apt-get install git
-
+git config --global core.editor "vim"
 # install pip
 sudo apt-get install python-pip python-dev build-essential 
 
