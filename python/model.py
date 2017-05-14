@@ -296,25 +296,20 @@ def model(testing=False):
 # In[84]:
 
 def upload_json(testing, output, filename):
-    
-    if testing:
-        with open(os.path.join(fdir, 'html/' + filename), 'w') as f:
-            json.dump(output, f, indent=4)
+    with open(os.path.join(fdir, '../' + filename), 'w') as f:
+        json.dump(output, f, indent=4)
+
+    from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
+    ftp = ftplib.FTP(ftp_url)
+    ftp.login(ftp_user, ftp_pass)
+    if ftp_dir is not None:
+        ftp.cwd(ftp_dir)
+
+    ext = os.path.splitext(filename)[1]
+    if ext in (".txt", ".htm", ".html"):
+        ftp.storlines("STOR " + filename, open(os.path.join(fdir, '../' + filename)))
     else:
-        with open(os.path.join(fdir, filename), 'w') as f:
-            json.dump(output, f, indent=4)
-
-        from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
-        ftp = ftplib.FTP(ftp_url)
-        ftp.login(ftp_user, ftp_pass)
-        if ftp_dir is not None:
-            ftp.cwd(ftp_dir)
-
-        ext = os.path.splitext(filename)[1]
-        if ext in (".txt", ".htm", ".html"):
-            ftp.storlines("STOR " + filename, open(os.path.join(fdir, filename)))
-        else:
-            ftp.storbinary("STOR " + filename, open(os.path.join(fdir, filename)), 1024)
+        ftp.storbinary("STOR " + filename, open(os.path.join(fdir, '../' + filename)), 1024)
 
 # In[85]:
 def post_facebook():
@@ -326,7 +321,7 @@ def post_facebook():
 
 def run_model(testing=False):
     output = model()
-    filename = '../dart.json'
+    filename = 'dart.json'
     upload_json(testing, output, filename)
     post_facebook()
 
