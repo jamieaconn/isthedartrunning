@@ -1,9 +1,9 @@
-0 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/crons/hourly.py
+0 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/python/hourly.py
 
-15 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/crons/quarter.py
+15 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/python/quarter.py
 
-30 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/crons/half.py
+30 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/python/half.py
 
-45 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/crons/quarter.py
+45 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/python/quarter.py
 
 
