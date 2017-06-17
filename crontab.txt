@@ -6,4 +6,4 @@
 
 45 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/python/quarter.py
 
-
+59 * * * * ~/operational/isthedartrunning/ENV/bin/python ~/operational/isthedartrunning/python/scrapeRadar.py
