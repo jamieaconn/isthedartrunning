@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 import datetime
 import numpy as np
 from scipy import misc
