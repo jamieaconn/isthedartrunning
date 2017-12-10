@@ -1,19 +1,22 @@
 from scipy import misc, sum, average
 import requests
 from io import BytesIO
+import os
 
-zero = misc.imread('../ref_images/zero.png')
-one = misc.imread('../ref_images/one.png')
-two = misc.imread('../ref_images/two.png')
-three = misc.imread('../ref_images/three.png')
-four = misc.imread('../ref_images/four.png')
-five = misc.imread('../ref_images/five.png')
-six = misc.imread('../ref_images/six.png')
-seven = misc.imread('../ref_images/seven.png')
-eight = misc.imread('../ref_images/eight.png')
-nine = misc.imread('../ref_images/nine.png')
-dot = misc.imread('../ref_images/dot.png')
-black = misc.imread('../ref_images/black.png')
+fdir = os.path.abspath(os.path.dirname(__file__))
+
+zero = misc.imread(os.path.join(fdir, '../ref_images/zero.png'))
+one = misc.imread(os.path.join(fdir, '../ref_images/one.png'))
+two = misc.imread(os.path.join(fdir, '../ref_images/two.png'))
+three = misc.imread(os.path.join(fdir, '../ref_images/three.png'))
+four = misc.imread(os.path.join(fdir, '../ref_images/four.png'))
+five = misc.imread(os.path.join(fdir, '../ref_images/five.png'))
+six = misc.imread(os.path.join(fdir, '../ref_images/six.png'))
+seven = misc.imread(os.path.join(fdir, '../ref_images/seven.png'))
+eight = misc.imread(os.path.join(fdir, '../ref_images/eight.png'))
+nine = misc.imread(os.path.join(fdir, '../ref_images/nine.png'))
+dot = misc.imread(os.path.join(fdir, '../ref_images/dot.png'))
+black = misc.imread(os.path.join(fdir, '../ref_images/black.png'))
 
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine, dot, black]
 

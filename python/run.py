@@ -13,7 +13,9 @@ def main(timing, testing):
 		scraping.update_forecast_rainfall(testing)
 		scraping.rain(testing)
 		scraping.level(testing)
+		scraping.get_radar_images(testing)
 		model.run_model(testing)
+
 	elif timing == "half":
 		scraping.rain(testing)
 		scraping.level(testing)

@@ -2,12 +2,22 @@ import json
 import requests
 from time import gmtime, strftime, strptime
 import calendar
-from scipy.misc import imread
+from scipy import misc
 from io import BytesIO
-
+import os
 
 from local_info import metoffice_key
 
+fdir = os.path.dirname(__file__)
+
+img_dirs = {
+    "radar_img_dir": os.path.abspath(os.path.join(fdir, "../image/radar")),
+    "forecast_img_dir": os.path.abspath(os.path.join(fdir, "../image/forecast")),
+}
+
+for key in img_dirs.keys():
+    if not os.path.exists(img_dirs[key]):
+        os.makedirs(img_dirs[key])
 
 """
 TODO
@@ -23,7 +33,7 @@ def get_radar_times():
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print err
-        sys.exit(1)
+
 
     data = json.loads(r.content)
     timestamps = [lay for lay in data['Layers']['Layer'] if lay['@displayName'] == 'Rainfall'][0]['Service']['Times']['Time']
@@ -38,9 +48,8 @@ def get_radar_image(timestamp):
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print err
-        sys.exit(1)
 
-    with open('../image/radar/' + timestamp + '.png', "wb") as ff:
+    with open(os.path.join(img_dirs["radar_img_dir"], timestamp + '.png'), "wb") as ff:
         ff.write(r.content)
     return misc.imread(BytesIO(r.content))
 
@@ -52,7 +61,7 @@ def get_forecast_radar_times():
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print err
-        sys.exit(1)
+
     data = json.loads(r.content)
 
     # time when the model ran (remove last three characters from string)
@@ -75,19 +84,10 @@ def get_forecast_radar_image(model_timestamp, step):
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print err
-        sys.exit(1)
+
     
 
     filename = model_timestamp + "_" + str(step) + ".png"
-    with open('../image/forecast/' + filename, "wb") as ff:
+    with open(os.path.join(img_dirs["forecast_img_dir"], filename), "wb") as ff:
         ff.write(r.content)
     return misc.imread(BytesIO(r.content))
-
-
-
-"""THESE FUNCTIONS SHOULD SLOT INTO THE OTHER CODE SOMEWHERE"""
-
-def get_radar_images():
-    timestamps = get_radar_times()
-    for timestamp in timestamps:
-        get_radar_image(timestamp)

@@ -108,7 +108,7 @@ def rain_from_radar(image, river):
 
 
 def update_forecast_rainfall(testing):
-    model_timestamp, steps = get_forecast_radar_times()
+    model_timestamp, steps = scrapeRadar.get_forecast_radar_times()
 
     for step in steps:
         timestamp = time_fct(model_timestamp, step)
@@ -121,7 +121,7 @@ def update_forecast_rainfall(testing):
         update_sql(river, timestamp, rain)
 
 
-def level(testing=False):
+def level(testing):
 
     end_date = strftime("%Y-%m-%d", gmtime())
     start_date =  strftime("%Y-%m-%d", gmtime(calendar.timegm(gmtime()) - 86400))  
@@ -193,10 +193,18 @@ def sql_plot(timestamp):
 
 
 
-def rain(testing=False):
+def rain(testing):
 
     timestamp = gettime()
     rain = dartcom.get_rainfall()
 
     #Update database with newest rain value
     update_sql_rain(timestamp, rain)
+
+
+
+def get_radar_images(testing):
+    timestamps = scrapeRadar.get_radar_times()
+    for timestamp in timestamps:
+        scrapeRadar.get_radar_image(timestamp)
+
