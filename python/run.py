@@ -1,5 +1,6 @@
 import argparse
 import scraping
+import model
 
 def main(timing, testing):
 	if testing:
