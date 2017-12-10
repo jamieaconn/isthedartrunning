@@ -145,54 +145,6 @@ def level(testing):
         con.commit()
         con.close()
 
-
-def sql_plot(timestamp):
-    con = sqlite3.connect(database)
-    cur = con.cursor()
-    query = """
-        SELECT timestamp, predict
-        FROM (
-        SELECT * 
-        FROM 
-            {river}
-        WHERE predict IS NOT NULL OR level IS NOT NULL
-        ORDER BY timestamp DESC
-        LIMIT {plot_range}) 
-
-        ORDER BY
-        timestamp ASC
-
-    """
-    cur.execute(query.format(plot_range= plot_range, river=river ))
-    data =  cur.fetchall()
-
-
-    # get times as datetime object
-    dates =[(datetime.datetime(*(strptime(r[0], "%Y-%m-%dT%H:%M")[0:6]))) for r in data]
-    values = [r[1] for r in data]
-    # PLOT THE PREDICT VALUES AGAINST TIME!!! NOT WORKING YET
-    axes = plt.gca()
-    axes.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-    axes.set_ylim([0,2])
-
-    #fig, ax = plt.subplots()
-    #ax.plot_date(dates, values, 'b-')
-    legend = "forecast updated at: UTC" + timestamp 
-    plt.plot(dates, values, label = legend)
-    plt.gcf().autofmt_xdate()
-    plt.legend(loc = 'upper right')
-    plt.savefig(image_name)
-
-    ftp = ftplib.FTP("ftp.ipage.com")
-    ftp.login('isthedartrunningcouk', 'iPage0123!')
-
-    ftp.storbinary("STOR " + file, open(image_name, "rb"), 1024)
-
-    con.commit()       
-    con.close()
-
-
-
 def rain(testing):
 
     timestamp = gettime()
