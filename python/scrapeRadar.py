@@ -19,7 +19,13 @@ TODO
 def get_radar_times():
     print "Requesting radar times"
     radar_times_url = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/all/json/capabilities'
-    r = requests.get(radar_times_url, params={"key" : metoffice_key})
+    try:
+        r = requests.get(radar_times_url, params={"key" : metoffice_key})
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print err
+        sys.exit(1)
+
     data = json.loads(r.content)
     timestamps = [lay for lay in data['Layers']['Layer'] if lay['@displayName'] == 'Rainfall'][0]['Service']['Times']['Time']
     return timestamps
@@ -28,10 +34,16 @@ def get_radar_image(timestamp):
     """Request radar image from metoffice and save to disk and return as array"""
     radar_url = "http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png"
     print "Requesting radar for", timestamp
-    r = requests.get(radar_url, params={"TIME" : timestamp + "Z", "key": metoffice_key})
+    try:
+        r = requests.get(radar_url, params={"TIME" : timestamp + "Z", "key": metoffice_key})
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print err
+        sys.exit(1)
+
     with open('../image/radar/' + timestamp + '.png', "wb") as ff:
         ff.write(r.content)
-    return imread(BytesIO(r.content))
+    return misc.imread(BytesIO(r.content))
 
 def time_fct(model_time, step): # Takes the model timestamp and adds the number of hours to get the timestamp for the image forecast
     # Turns string into UTC_struct
@@ -43,7 +55,12 @@ def time_fct(model_time, step): # Takes the model timestamp and adds the number 
 def get_forecast_radar_times():
     print "Requesting forecast radar times"
     forecast_radar_times_url = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/all/json/capabilities'
-    r = requests.get(forecast_radar_times_url, params={"key" : metoffice_key})
+    try:
+        r = requests.get(forecast_radar_times_url, params={"key" : metoffice_key})
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print err
+        sys.exit(1)
     data = json.loads(r.content)
 
     # time when the model ran (remove last three characters from string)
@@ -61,12 +78,19 @@ def get_forecast_radar_image(model_timestamp, step):
     #timestamp = time_fct(model_timestamp, step)
     forecast_radar_url = "http://datapoint.metoffice.gov.uk/public/data//layer/wxfcs/Precipitation_Rate/png"
     print "Requesting radar for", model_timestamp + "_" + str(step)
-    r = requests.get(forecast_radar_url, params={"RUN":model_timestamp+":00Z", "FORECAST":step})
+
+    try:
+        r = requests.get(forecast_radar_url, params={"key" : metoffice_key, "RUN":model_timestamp+":00Z", "FORECAST":step})
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print err
+        sys.exit(1)
+    
 
     filename = model_timestamp + "_" + str(step) + ".png"
     with open('../image/forecast/' + filename, "wb") as ff:
         ff.write(r.content)
-    return imread(BytesIO(r.content))
+    return misc.imread(BytesIO(r.content))
 
 
 
