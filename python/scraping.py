@@ -1,33 +1,21 @@
 import datetime
 import numpy as np
-import glob, os
 import math
-import urllib2
-import urllib
-import cStringIO
 import calendar
 import csv
 from time import gmtime, strftime, strptime
-from tempfile import NamedTemporaryFile
 import shutil
 import requests
 import json
-from numpy import recfromcsv
-from subprocess import call
 import ftplib
-import sqlite3 as lite
-import sys
-import os.path
+import sqlite3
+import os
 
-from scipy import sum, average, misc
-fdir = os.path.abspath(os.path.dirname(__file__))
-
-
+# local modules
 import dartcom
-
 import scrapeRadar
 
-river = 'dart'
+fdir = os.path.abspath(os.path.dirname(__file__))
 database = os.path.join(fdir, '../data.db')
 
 rivers = ['dart', 'nevis']
@@ -35,6 +23,9 @@ bounds = {
     'dart': {'Nmin' : 396, 'Nmax' : 408, 'Emin':230, 'Emax':242},
     'nevis': {'Nmin' : 162, 'Nmax' : 164, 'Emin':205, 'Emax':207}
 }
+
+river = 'dart'
+
 
 white = np.array([199,191,193,128])
 grey = np.array([0,0,0,0])
@@ -49,7 +40,7 @@ G = np.array([254,   0, 254, 255])
 
 
 def update_sql_rain(time_val, rain_val):
-    con = lite.connect(database)
+    con = sqlite3.connect(database)
     cur = con.cursor()
     cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river, time_val = time_val))
     cur.execute("UPDATE {river} SET rain=({rain_val}) WHERE timestamp = ('{time_val}')".format(river=river, rain_val = rain_val, time_val = time_val))
@@ -58,7 +49,7 @@ def update_sql_rain(time_val, rain_val):
 
 
 def update_sql(river, time_val, forecast_val):
-    con = lite.connect(database)
+    con = sqlite3.connect(database)
     cur = con.cursor()
     cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time_val))
     cur.execute("UPDATE {river} SET forecast=({forecast_val}) WHERE timestamp = ('{time_val}')".format(river=river, forecast_val = forecast_val, time_val = time_val))
@@ -66,49 +57,50 @@ def update_sql(river, time_val, forecast_val):
     con.close()
 
 
-def upload(ftp, file):
-    ext = os.path.splitext(file)[1]
-    if ext in (".txt", ".htm", ".html"):
-        ftp.storlines("STOR " + file, open(file))
-    else:
-        ftp.storbinary("STOR " + file, open(file, "rb"), 1024)
-
-def time_fct(model_time, step): # Takes the model timestamp and adds the number of hours to get the timestamp for the image forecast
+def time_fct(model_time, step): 
+    """Takes the model timestamp and adds the number of hours to get the timestamp for the image forecast."""
     # Turns string into UTC_struct
     time= strptime(model_time, "%Y-%m-%dT%H:%M")
     # Turns UTC_struct into seconds since epoch adds on a multiple of hours and then returns to UTC-Struct and then string!
     return strftime("%Y-%m-%dT%H:%M" ,gmtime(calendar.timegm(time) + (3600 * step)))
 
 
+def gettime():
+    time = gmtime()
+    if(time[4] > 15 & time[4] < 45): 
+        timestamp = strftime("%Y-%m-%dT%H:30", time)
+    else:
+        timestamp = strftime("%Y-%m-%dT%H:00", time)
+    return(timestamp)
+
+
 def rain_from_radar(image, river):
-    b = image
     rain = 0
     for i in range(bounds[river]['Nmin'], bounds[river]['Nmax'] ):
         for j in range(bounds[river]['Emin'], bounds[river]['Emax']):
-            if((b[i,j]==white).all() == True):
+            if((image[i,j]==white).all() == True):
                 pass
-            elif((b[i,j]==grey).all() == True):
+            elif((image[i,j]==grey).all() == True):
                 pass
-            elif((b[i,j]== A).all() == True):
+            elif((image[i,j]== A).all() == True):
                 rain = rain + 0.3    
-            elif((b[i,j]== B).all() == True):
+            elif((image[i,j]== B).all() == True):
                 rain = rain + 0.75
                 
-            elif((b[i,j]== C).all() == True):
+            elif((image[i,j]== C).all() == True):
                 rain = rain + 1.5
                 
-            elif((b[i,j]== D).all() == True):
+            elif((image[i,j]== D).all() == True):
                 rain = rain + 3
                 
-            elif((b[i,j]== E).all() == True):
+            elif((image[i,j]== E).all() == True):
                 rain = rain + 6
                 
-            elif((b[i,j]== F).all() == True):
+            elif((image[i,j]== F).all() == True):
                 rain = rain + 12
                 
-            elif((b[i,j]== G).all() == True):
+            elif((image[i,j]== G).all() == True):
                 rain = rain + 24
-                
             else:
                 rain = rain + 32
     pixels = (bounds[river]['Nmax'] - bounds[river]['Nmin']) * (bounds[river]['Emax'] - bounds[river]['Emin'])
@@ -122,11 +114,11 @@ def update_forecast_rainfall(testing):
         timestamp = time_fct(model_timestamp, step)
         image = scrapeRadar.get_forecast_radar_image(model_timestamp, step)
 
-        for river in rivers:
-            #print timestamp
-            rain = rain_from_radar(image, river)
-            #print rain
-            update_sql(river, timestamp, rain)
+        
+        #print timestamp
+        rain = rain_from_radar(image, river)
+        #print rain
+        update_sql(river, timestamp, rain)
 
 
 def level(testing=False):
@@ -140,7 +132,7 @@ def level(testing=False):
         print "level json request failed"
         return 0
     else:
-        con = lite.connect(database)
+        con = sqlite3.connect(database)
         cur = con.cursor()
         data = r.json()
         for x in range(0, len(data['items'])):
@@ -154,9 +146,8 @@ def level(testing=False):
         con.close()
 
 
-
 def sql_plot(timestamp):
-    con = lite.connect(database)
+    con = sqlite3.connect(database)
     cur = con.cursor()
     query = """
         SELECT timestamp, predict
@@ -194,18 +185,12 @@ def sql_plot(timestamp):
 
     ftp = ftplib.FTP("ftp.ipage.com")
     ftp.login('isthedartrunningcouk', 'iPage0123!')
-    upload(ftp, image_name)
+
+    ftp.storbinary("STOR " + file, open(image_name, "rb"), 1024)
+
     con.commit()       
     con.close()
 
-
-def gettime():
-    time = gmtime()  #Current time - 16 minutes
-    if(time[4] > 15 & time[4] < 45): 
-        timestamp = strftime("%Y-%m-%dT%H:30", time)
-    else:
-        timestamp = strftime("%Y-%m-%dT%H:00", time)
-    return(timestamp)
 
 
 def rain(testing=False):
