@@ -34,9 +34,6 @@
     <div id="link-container">
         <p> <a class= "button-link" href="/graph.html">graph</a> </p>
     </div>
-    <div id="fb-container" style="width:100%;">
-        <div class="fb-like" data-href="http://isthedartrunning.co.uk" data-layout="button_count" data-action="like" data-size="large" data-show-faces="true" data-share="true"></div>
-    </div>
 
 
 
