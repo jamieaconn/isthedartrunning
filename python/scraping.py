@@ -23,12 +23,12 @@ from scipy import sum, average, misc
 fdir = os.path.abspath(os.path.dirname(__file__))
 
 
-from dartcom import get_rainfall
+import dartcom
+
+import scrapeRadar
 
 river = 'dart'
 database = os.path.join(fdir, '../data.db')
-
-
 
 rivers = ['dart', 'nevis']
 bounds = {
@@ -45,24 +45,6 @@ D = np.array([254, 203,   0, 255])
 E = np.array([254, 152,   0, 255])
 F = np.array([254,   0,   0, 255])
 G = np.array([254,   0, 254, 255])
-
-
-
-zero = misc.imread(os.path.join(fdir, '../ref_images/zero.png'))
-one = misc.imread(os.path.join(fdir, '../ref_images/one.png'))
-two = misc.imread(os.path.join(fdir, '../ref_images/two.png'))
-three = misc.imread(os.path.join(fdir, '../ref_images/three.png'))
-four = misc.imread(os.path.join(fdir, '../ref_images/four.png'))
-five = misc.imread(os.path.join(fdir, '../ref_images/five.png'))
-six = misc.imread(os.path.join(fdir, '../ref_images/six.png'))
-seven = misc.imread(os.path.join(fdir, '../ref_images/seven.png'))
-eight = misc.imread(os.path.join(fdir, '../ref_images/eight.png'))
-nine = misc.imread(os.path.join(fdir, '../ref_images/nine.png'))
-dot = misc.imread(os.path.join(fdir, '../ref_images/dot.png'))
-black = misc.imread(os.path.join(fdir, '../ref_images/black.png'))
-
-numbers = [zero, one, two, three, four, five, six, seven, eight, nine, dot, black]
-
 
 
 
@@ -98,18 +80,8 @@ def time_fct(model_time, step): # Takes the model timestamp and adds the number 
     return strftime("%Y-%m-%dT%H:%M" ,gmtime(calendar.timegm(time) + (3600 * step)))
 
 
-def forecast_png(river, model_time, hour, timestamp): #gets image from metoffice and returns the rain in the dart catchment
-
-    os.chdir(os.path.join(fdir, "../image/forecast"))
-    if (hour < 10):
-        url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxfcs//Precipitation_Rate//png?RUN=" + model_time + ":00Z&FORECAST=" + str(hour) + "&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
-    else: 
-        url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxfcs//Precipitation_Rate//png?RUN=" + model_time + ":00Z&FORECAST=" + str(hour) + "&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
-
-    #print url
-    urllib.urlretrieve(url, timestamp + ".png")
-    file = cStringIO.StringIO(urllib2.urlopen(url).read())
-    b = misc.imread(file)
+def rain_from_radar(image, river):
+    b = image
     rain = 0
     for i in range(bounds[river]['Nmin'], bounds[river]['Nmax'] ):
         for j in range(bounds[river]['Emin'], bounds[river]['Emax']):
@@ -139,31 +111,20 @@ def forecast_png(river, model_time, hour, timestamp): #gets image from metoffice
                 
             else:
                 rain = rain + 32
-    os.chdir("..")
-    os.chdir("..")
     pixels = (bounds[river]['Nmax'] - bounds[river]['Nmin']) * (bounds[river]['Emax'] - bounds[river]['Emin'])
     return(rain/(pixels)) 
 
 
 def update_forecast_rainfall(testing):
-    metoff = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/all/json/capabilities?key=78e077ee-7ec6-408c-9b04-b23480cbb589'
-    response = urllib2.urlopen(metoff)
-    data = json.load(response)
+    model_timestamp, steps = get_forecast_radar_times()
 
-    # ret=rns the most recent model run timestamp
-    model_time = data["Layers"]["Layer"][0]["Service"]["Timesteps"]["@defaultTime"]
-    #Remove last bit of the timestamp
-    model_time = model_time[:16]
+    for step in steps:
+        timestamp = time_fct(model_timestamp, step)
+        image = scrapeRadar.get_forecast_radar_image(model_timestamp, step)
 
-    #returns all of the images available as hours since the model rain
-    timesteps =  data["Layers"]["Layer"][0]["Service"]["Timesteps"]["Timestep"]
-    #print model_time
-    for step in timesteps:
-        #print step
-        timestamp = time_fct(model_time, step)
         for river in rivers:
             #print timestamp
-            rain = forecast_png(river, model_time, step, timestamp)
+            rain = rain_from_radar(image, river)
             #print rain
             update_sql(river, timestamp, rain)
 
@@ -250,16 +211,7 @@ def gettime():
 def rain(testing=False):
 
     timestamp = gettime()
-    rain = get_rainfall()
-
+    rain = dartcom.get_rainfall()
 
     #Update database with newest rain value
     update_sql_rain(timestamp, rain)
-
-""" DEPRECIATED """
-def get_png(): #gets image from metoffice and returns the rain in the dart catchment
-    timestamp = gettime()
-    url = "http://datapoint.metoffice.gov.uk//public//data//layer//wxobs//RADAR_UK_Composite_Highres//png?TIME=" + timestamp + ":00Z&key=78e077ee-7ec6-408c-9b04-b23480cbb589"
-
-
-    urllib.urlretrieve(url,  '/home/ubuntu/testing/isthedartrunning/image/radar/' + timestamp + ".png")
