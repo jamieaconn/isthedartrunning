@@ -9,3 +9,5 @@ def create_logger():
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
     return logger
+
+logger = create_logger()
