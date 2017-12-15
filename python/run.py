@@ -1,6 +1,6 @@
 import argparse
 import scraping
-import model
+import modelLib
 
 def main(timing, testing):
 	if testing:
@@ -14,15 +14,15 @@ def main(timing, testing):
 		scraping.rain(testing)
 		scraping.level(testing)
 		scraping.get_radar_images(testing)
-		model.run_model(testing)
+		modelLib.run(testing)
 
 	elif timing == "half":
 		scraping.rain(testing)
 		scraping.level(testing)
-		model.run_model(testing)
+		modelLib.run(testing)
 	elif timing == "quarter":
 		scraping.level(testing)
-		model.run_model(testing)
+		modelLib.run(testing)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Run the model')

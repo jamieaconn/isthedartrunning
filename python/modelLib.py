@@ -36,7 +36,10 @@ def g_inv(x):
 def load_dataframe_from_sql(river, limit=-1):
     """Load data from the database and return a pandas dataframe. 
     Limit param specifies number of rows returned. Default is to return all"""
-    logger.debug("loading df for river {river} from sql with row limit of {limit}".format(river=river, limit=limit))
+    if limit > 0:
+        logger.debug("loading df for river {river} from sql with row limit of {limit}".format(river=river, limit=limit))
+    else:
+        logger.debug("loading entire df for river {river} from sql".format(river=river))
     con = sqlite3.connect(DATABASE_PATH)
     cur = con.cursor()
     query = """
@@ -102,28 +105,32 @@ def pre_model_checks(df, current_time):
         sys.exit()
 
         
-def model(df):
-    logger.info('RUNNING MODEL')
-    latest_level_time = max(df.index[df.level.notnull()])
-    latest_level = df.loc[latest_level_time].level
+def model(df, from_latest_level=True):
+    logger.info('*** RUNNING MODEL ***')
+    if from_latest_level:
+        # for running model from latest level update onwards
+        starting_time = max(df.index[df.level.notnull()])
+    else:
+        # for running model on entire dataframe
+        starting_time = df.index[df.level.notnull()][5]
+    starting_level = df.loc[starting_time].level
 
-    logger.info('latest level at: ' + str(latest_level_time))
-    logger.info('latest level is: ' + str(latest_level))
+
+    logger.info('Run model from: ' + str(starting_time))
+    logger.info('Starting level update: ' + str(starting_level))
+
 
     df['storage'] = np.nan
     df['predict'] = np.nan
 
     # Calculate initial storage
-    init_storage = f_inv(g_inv(latest_level))
-    df.loc[latest_level_time, 'storage'] = init_storage
-
-    # Run iteration for indexes > latest_level_update
+    init_storage = f_inv(g_inv(starting_level))
+    df.loc[starting_time, 'storage'] = init_storage
     storage = init_storage
 
-    # Remove forecast from the model
-    df_model = df[(df.index > pd.Timestamp(latest_level_time))]
+    # Run iteration for indexes > latest_level_update
+    df_model = df[(df.index > pd.Timestamp(starting_time))]
 
-    #df_model = df[(df.index > pd.Timestamp(latest_level_time))]
     for i,r in df_model.iterrows():
         rain = df.loc[i - delay, 'model_rain']
         predict = g(f(storage))
