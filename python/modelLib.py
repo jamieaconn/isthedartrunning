@@ -7,6 +7,7 @@ import os
 import ftplib
 import numpy as np
 import requests
+import sqlite3
 
 # local modules
 from logfuncts import logger
@@ -102,7 +103,7 @@ def pre_model_checks(df, current_time):
 
         
 def model(df):
-    logger.info('RUNNING MODE')
+    logger.info('RUNNING MODEL')
     latest_level_time = max(df.index[df.level.notnull()])
     latest_level = df.loc[latest_level_time].level
 
@@ -130,10 +131,9 @@ def model(df):
         df.loc[i, 'storage'] = storage
         df.loc[i, 'predict'] = predict
 
-return df
+    return df
 
 
-def model_export(df, current_time)
 # # Create export dictionary
 # 
 # * Round model_rain, level and predict
@@ -145,7 +145,7 @@ def model_export(df, current_time)
 #     * text
 #     * next_up if in next hour
 
-
+def model_export(df, current_time):
     # Round export columns
     df = df.round({'level': 3, 'predict': 3, 'model_rain' : 1})
 
@@ -182,7 +182,7 @@ def model_export(df, current_time)
         else:
             text = "THE DART WILL BE UP SHORTLY"    
     
-    logger.info("OUTPUT TEXT:", text)
+    logger.info("OUTPUT TEXT: " + text)
 
 
 
@@ -192,13 +192,12 @@ def model_export(df, current_time)
     output['text'] = text
     output['values'] = values
 
-    
-    logger.debug("---%s seconds ---" % (time.time() - start_time))
+
     return output
 # # Write export to json
 
 
-def upload_json(testing, output):
+def upload_export(testing, output):
     """Upload json file to webpage via ftp and then force fb to update cache"""
     filename = "dart.json"
     with open(os.path.join(FDIR, '../' + filename), 'w') as f:
@@ -210,28 +209,21 @@ def upload_json(testing, output):
     if ftp_dir is not None:
         ftp.cwd(ftp_dir)
 
-    ext = os.path.splitext(filename)[1]
-    if ext in (".txt", ".htm", ".html"):
-        ftp.storlines("STOR " + filename, open(os.path.join(FDIR, '../' + filename)))
-    else:
-        ftp.storbinary("STOR " + filename, open(os.path.join(FDIR, '../' + filename)), 1024)
+    ftp.storbinary("STOR " + filename, open(os.path.join(FDIR, '../' + filename)), 1024)
 
     from local_info import facebook_access 
     
     r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : facebook_access})
 
 
-
-
-
-def run_model(testing):
+def run(testing):
     start_time = time.time()
 
     # # Load data from sql database into pandas df
 
-    df = modelLib.load_dataframe_from_sql(river="dart", limit=130)
+    df = load_dataframe_from_sql(river="dart", limit=130)
 
-    df = modelLib.preprocessing(df)
+    df = preprocessing(df)
 
     # # Calculate important timestamps
     
@@ -242,14 +234,15 @@ def run_model(testing):
     
 
     # # Pre-model checks
-    modelLib.pre_model_checks(df, current_time)
+    pre_model_checks(df, current_time)
 
     # run model
-    df = modelLib.model(df)
+    df = model(df)
 
     # create export
-    output = modelLib.model_export(df, current_time)
+    output = model_export(df, current_time)
 
     # upload export
-    modelLib.upload_json(testing, output)
+    upload_export(testing, output)
+    logger.debug("---%s seconds --- taken to run model" % (time.time() - start_time))
 
