@@ -13,3 +13,5 @@ html/historical_data/dart.csv
 html/testing/*
 html/testing
 ENV/*
+analysis/.ipynb_checkpoints/*
+.DS_Store
