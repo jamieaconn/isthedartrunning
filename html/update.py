@@ -1,11 +1,14 @@
-#!/usr/bin/env python
-
 import sys
-import os.path
+import os
 import ftplib
 
-def ftp_upload(filename): 
+module_path = os.path.abspath(os.path.join('../python'))
+
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
     
+def ftp_upload(filename): 
     from local_info import ftp_url, ftp_pass, ftp_user, ftp_dir
     ftp = ftplib.FTP(ftp_url)
     ftp.login(ftp_user, ftp_pass)
