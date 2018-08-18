@@ -1,27 +1,47 @@
-
+import pandas as pd
 import numpy as np
-import tensorflow as tf
+#%matplotlib inline
 import matplotlib.pyplot as plt
+import sqlite3
+import os
+import sys
 
-num_steps = 10
-batch_size = 200
+# local modules
+module_path = os.path.abspath(os.path.join('../python'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+
+import modelLib
+from logfuncts import logger
+
+df = modelLib.load_dataframe_from_sql("dart", limit=-1)
+
+df = modelLib.preprocessing(df)
+
+# take a nice section 
+start_date = "2017-08-01 00:00:00"
+end_date = "2017-11-01 00:00:00"
+df = df[(df.index>=start_date) & (df.index < end_date)]
+
+# some null values but let's just set them to base level 0.4
+df[df.level.isnull()] = 0.4
+
+# also don't believe that there was 20mm of rain in 15 minutes....
+
+df.loc[df.model_rain > 15, 'model_rain'] = 0
+
+import tensorflow as tf
+
+num_steps = 30
+batch_size = 300
 num_classes = 2
 state_size = 15
 learning_rate = 0.1
 
-
-# generate some fake rain and river level data
-def gen_data(size=1000000):
-    X = np.array(np.random.uniform(size=(size,)))
-    Y = []
-    weights = range(40, 0, -1)
-    s = sum(weights)
-    weights = [w/float(s) for w in weights]
-    sum(weights)
-    for i in range(size):
-        Y.append(sum([w * X[i-j] for j ,w in enumerate(weights)]))
-
-    return X, np.array(Y)
+def gen_real_data():
+    X = np.array(1000*list(df.model_rain.values))
+    Y = np.array(1000*list(df.level.values))
+    return X, Y
 
 # adapted from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/reader.py
 def gen_batch(raw_data, batch_size, num_steps):
@@ -30,9 +50,6 @@ def gen_batch(raw_data, batch_size, num_steps):
 
     # partition raw data into batches and stack them vertically in a data matrix
     batch_partition_length = data_length // batch_size
-    print "batch_partition_length", batch_partition_length
-    print "batch_size", batch_size
-    
     data_x = np.zeros([batch_size, batch_partition_length], dtype=np.float32)
     data_y = np.zeros([batch_size, batch_partition_length], dtype=np.float32)
     for i in range(batch_size):
@@ -48,7 +65,8 @@ def gen_batch(raw_data, batch_size, num_steps):
 
 def gen_epochs(num_epochs, num_steps):
     for i in range(num_epochs):
-        yield gen_batch(gen_data(), batch_size, num_steps)
+        raw_data = gen_real_data()
+        yield gen_batch(raw_data, batch_size, num_steps)
         
         
 """
@@ -71,10 +89,6 @@ rnn_inputs = tf.unstack(tf.reshape(x, (x.shape[0], x.shape[1], 1)), axis=1)
 print x
 print
 print rnn_inputs
-
-
-
-
 
 
 """
@@ -108,6 +122,8 @@ def rnn_cell(rnn_input, state):
     return state, output
 
 
+
+
 """
 Adding rnn_cells to graph
 
@@ -122,9 +138,6 @@ for rnn_input in rnn_inputs:
     state, output = rnn_cell(rnn_input, state)
     rnn_outputs.append(output)
 final_state = state
-
-
-
 
 
 """
@@ -157,7 +170,6 @@ train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 Train the network
 """
 
-
 def train_network(num_epochs, num_steps, state_size, verbose=True):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -188,23 +200,18 @@ def train_network(num_epochs, num_steps, state_size, verbose=True):
                 if step % 100 == 0 and step > 0:
                     if verbose:
                         print("Average loss at step", step,
-                              "for last 250 steps:", training_loss/100)
+                              "for last 100 steps:", training_loss/100)
                     training_losses.append(training_loss/100)
                     training_loss = 0
             
-    return training_losses, X, Y, pred_test, preds, Ys, Xs
+    return training_losses, X, Y, pred_test, preds, Ys, Xs, y_test
 
-
-
-training_losses, final_X, final_Y, final_predictions, predictions, Ys, Xs = train_network(3,num_steps, state_size)
+training_losses, final_X, final_Y, final_predictions, predictions, Ys, Xs, y_test = train_network(10,num_steps, state_size)
 plt.plot(training_losses)
-plt.savefig('losses.png', dpi=400)
+plt.show()
 
 
 
-
-
-plt.plot(predictions[-300:])
-plt.plot(Ys[-300:])
-plt.savefig('graph.png', dpi=400)
-
+plt.plot(predictions[-5000:])
+plt.plot(Ys[-5000:])
+plt.show()
