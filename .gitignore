@@ -1,3 +1,4 @@
+*.png
 data.db
 dart.json
 forecast
