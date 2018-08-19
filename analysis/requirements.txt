@@ -1,6 +1,8 @@
 numpy
+tensorflow
+np_utils
+keras
 pandas
 ipykernel
 jupyter
 matplotlib
-sqlite3
