@@ -233,3 +233,9 @@ plt.plot(predictions[-2000:])
 plt.plot(Ys[-2000:])
 plt.savefig('graph.png', dpi=400)
 plt.show()
+
+from math import sqrt
+
+errors = np.abs(np.array(Ys) - np.array(predictions))
+print "Mean absolute error:", errors.mean().round(4)
+print "Root mean squared error:", round(sqrt((errors ** 2).mean()), 3)

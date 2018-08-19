@@ -16,3 +16,4 @@ html/testing
 ENV/*
 analysis/.ipynb_checkpoints/*
 .DS_Store
+analysis/env
