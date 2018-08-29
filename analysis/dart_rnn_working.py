@@ -21,27 +21,26 @@ def load_data():
     df = modelLib.preprocessing(df)
 
     # take a nice section 
-    start_date = "2017-08-01 00:00:00"
-    end_date = "2017-11-01 00:00:00"
+    start_date = "2016-08-01 00:00:00"
+    end_date = "2018-06-14 18:00:00"
     df = df[(df.index>=start_date) & (df.index < end_date)]
 
     # some null values but let's just set them to base level 0.4
-    df[df.level.isnull()] = 0.4
+    df.level = df.level.fillna(method="pad")
+    train_df = df.iloc[:32772,:]
+    test_df = df.iloc[32772:,:]
 
-    # also don't believe that there was 20mm of rain in 15 minutes....
-
-    df.loc[df.model_rain > 15, 'model_rain'] = 0
-    return df
+    return train_df, test_df
 
 def gen_real_data(df, update_timestep):
-    X = np.array(1000*list(df.model_rain.values))
-    Y = np.array(1000*list(df.level.values))
+    X = np.array(list(df.model_rain.values))
+    Y = np.array(list(df.level.values))
     # create a bool vector which is 1 for every update_timestep values else 0
     update_vector = np.array([1 if (val%update_timestep==0) else 0 for val in range(len(X))])
     X = np.column_stack([X, update_vector, update_vector*Y])
     return X, Y
 
-def gen_batch(raw_data, batch_size, num_steps, num_features):
+def gen_batch(raw_data, batch_size, num_steps, num_features, epoch_size):
     # adapted from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/reader.py
     #print "batch_size:", batch_size
     #print "num_steps:", num_steps
@@ -62,10 +61,8 @@ def gen_batch(raw_data, batch_size, num_steps, num_features):
 
     #print "data_x.shape, data_y.shape", data_x.shape, data_y.shape
     # further divide batch partitions into num_steps for truncated backprop
-    epoch_size = batch_partition_length // num_steps
-    #print "epoch_size = batch_partition_length // num_steps =", epoch_size
-
     for i in range(epoch_size):
+        i = i % (batch_partition_length / num_steps)
         x = data_x[:, i * num_steps:(i + 1) * num_steps,:]
         y = data_y[:, i * num_steps:(i + 1) * num_steps]
         #print "x.shape, y.shape:", x.shape, y.shape
@@ -73,9 +70,9 @@ def gen_batch(raw_data, batch_size, num_steps, num_features):
 
     #print "There are 5 batches in each epoch. Each batch contains 200*10 values"
     
-def gen_epochs(num_epochs, num_steps, update_timestep, num_features, batch_size, df):
+def gen_epochs(num_epochs, num_steps, update_timestep, num_features, batch_size, df, epoch_size):
     for i in range(num_epochs):
-        yield gen_batch(gen_real_data(df, update_timestep), batch_size, num_steps, num_features)
+        yield gen_batch(gen_real_data(df, update_timestep), batch_size, num_steps, num_features, epoch_size)
         
 
 def generate_placeholders(batch_size, num_steps, num_features, state_size):
@@ -108,11 +105,11 @@ This is very similar to the __call__ method on Tensorflow's BasicRNNCell. See:
 https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/rnn/python/ops/core_rnn_cell_impl.py#L95
 """    
 def rnn_cell(rnn_input, state):
-    print "rnn_input", rnn_input.shape
-    print "state", state.shape
+    #print "rnn_input", rnn_input.shape
+    #print "state", state.shape
     with tf.variable_scope('rnn_cell', reuse=True):
         W = tf.get_variable('W', [num_features + state_size, state_size])
-        print "W", W.shape
+        #print "W", W.shape
         b = tf.get_variable('b', [state_size], initializer=tf.constant_initializer(0.0))
         #Wy = tf.get_variable('Wy', [state_size, state_size])
         #by = tf.get_variable('by', [state_size], initializer=tf.constant_initializer(0.0))
@@ -178,14 +175,14 @@ def training_step(rnn_outputs, y, learning_rate, num_steps):
 Train the network
 """
 
-def train_network(num_epochs, num_steps, state_size, update_timestep, num_features, batch_size, df, verbose=True):
+def train_network(num_epochs, num_steps, state_size, epoch_size, update_timestep, num_features, batch_size, df, verbose=True):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         training_losses = []
         preds = []
         Xs = []
         Ys = []
-        for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps, update_timestep, num_features, batch_size, df)):
+        for idx, epoch in enumerate(gen_epochs(num_epochs, num_steps, update_timestep, num_features, batch_size, df, epoch_size)):
             training_loss = 0
             training_state = np.zeros((batch_size, state_size))
             
@@ -193,7 +190,7 @@ def train_network(num_epochs, num_steps, state_size, update_timestep, num_featur
                 print "EPOCH", idx
             for step, (X, Y) in enumerate(epoch):
                 #print X.shape, Y.shape
-                tr_losses, training_loss_, training_state, _, y_test, pred_test = \
+                tr_losses, training_loss_, training_state, _, y_test, pred = \
                     sess.run([losses,
                               total_loss,
                               final_state,
@@ -202,30 +199,30 @@ def train_network(num_epochs, num_steps, state_size, update_timestep, num_featur
                               predictions],
                                   feed_dict={x:X, y:Y, init_state:training_state})
                 training_loss += training_loss_
-                preds += list(pred_test.T[-1])
-                Ys += list(Y[-1])
-                
-                if step % 100 == 0 and step > 0:
+                preds += list(pred[-1])
+                Ys += list(Y.T[-1])
+                Xs += list(X[:,-1,0])
+                if step % 50 == 0 and step > 0:
                     if verbose:
                         print("Average loss at step", step,
-                              "for last 100 steps:", training_loss/100)
-                    training_losses.append(training_loss/100)
+                              "for last 50 steps:", training_loss/50)
+                    training_losses.append(training_loss/50)
                     training_loss = 0
             
-    return training_losses, X, Y, pred_test, preds, Ys, Xs, y_test
+    return training_losses, X, Y, pred, preds, Ys, Xs, y_test
 
 
 # Parameters
-num_steps = 40 #10 hours
-batch_size = 300
-num_classes = 2
+num_steps = 40
+batch_size = 150
 state_size = 15
 learning_rate = 0.1
 update_timestep = 100
 num_epochs = 20
 num_features = 3
+epoch_size = 200
 
-df = load_data()
+train_df, test_df = load_data()
 
 x, y, init_state, rnn_inputs = generate_placeholders(batch_size, num_steps, num_features, state_size)
 
@@ -234,13 +231,13 @@ rnn_outputs, final_state = create_graph(init_state, rnn_inputs)
 
 predictions, y_as_list, losses, total_loss, train_step = training_step(rnn_outputs, y, learning_rate, num_steps)
 
-training_losses, final_X, final_Y, final_predictions, predictions, Ys, Xs, y_test = train_network(num_epochs,num_steps, state_size, update_timestep, num_features, batch_size, df)
+training_losses, final_X, final_Y, final_predictions, predictions, Ys, Xs, y_test = train_network(num_epochs,num_steps, state_size, epoch_size, update_timestep, num_features, batch_size, train_df)
 plt.plot(training_losses)
 plt.show()
 
 
-plt.plot(predictions[-2000:])
-plt.plot(Ys[-2000:])
+plt.plot(predictions[-200:])
+plt.plot(Ys[-200:])
 plt.savefig('graph.png', dpi=400)
 plt.show()
 
