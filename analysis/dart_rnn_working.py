@@ -211,38 +211,38 @@ def train_network(num_epochs, num_steps, state_size, epoch_size, update_timestep
             
     return training_losses, X, Y, pred, preds, Ys, Xs, y_test
 
+def run_training():
+    # Parameters
+    num_steps = 40
+    batch_size = 150
+    state_size = 15
+    learning_rate = 0.1
+    update_timestep = 100
+    num_epochs = 20
+    num_features = 3
+    epoch_size = 200
 
-# Parameters
-num_steps = 40
-batch_size = 150
-state_size = 15
-learning_rate = 0.1
-update_timestep = 100
-num_epochs = 20
-num_features = 3
-epoch_size = 200
+    train_df, test_df = load_data()
 
-train_df, test_df = load_data()
+    x, y, init_state, rnn_inputs = generate_placeholders(batch_size, num_steps, num_features, state_size)
 
-x, y, init_state, rnn_inputs = generate_placeholders(batch_size, num_steps, num_features, state_size)
-
-rnn_outputs, final_state = create_graph(init_state, rnn_inputs)
-
-
-predictions, y_as_list, losses, total_loss, train_step = training_step(rnn_outputs, y, learning_rate, num_steps)
-
-training_losses, final_X, final_Y, final_predictions, predictions, Ys, Xs, y_test = train_network(num_epochs,num_steps, state_size, epoch_size, update_timestep, num_features, batch_size, train_df)
-plt.plot(training_losses)
-plt.show()
+    rnn_outputs, final_state = create_graph(init_state, rnn_inputs)
 
 
-plt.plot(predictions[-200:])
-plt.plot(Ys[-200:])
-plt.savefig('graph.png', dpi=400)
-plt.show()
+    predictions, y_as_list, losses, total_loss, train_step = training_step(rnn_outputs, y, learning_rate, num_steps)
 
-from math import sqrt
+    training_losses, final_X, final_Y, final_predictions, predictions, Ys, Xs, y_test = train_network(num_epochs,num_steps, state_size, epoch_size, update_timestep, num_features, batch_size, train_df)
+    plt.plot(training_losses)
+    plt.show()
 
-errors = np.abs(np.array(Ys) - np.array(predictions))
-print "Mean absolute error:", errors.mean().round(4)
-print "Root mean squared error:", round(sqrt((errors ** 2).mean()), 3)
+
+    plt.plot(predictions[-200:])
+    plt.plot(Ys[-200:])
+    plt.savefig('graph.png', dpi=400)
+    plt.show()
+
+    from math import sqrt
+
+    errors = np.abs(np.array(Ys) - np.array(predictions))
+    print "Mean absolute error:", errors.mean().round(4)
+    print "Root mean squared error:", round(sqrt((errors ** 2).mean()), 3)
