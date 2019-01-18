@@ -233,7 +233,7 @@ def upload_export_s3(testing, output):
         region_name=region_name
     )
     s3 = session.resource('s3')
-    bucket = s3.bucket(bucket_name)
+    bucket = s3.Bucket(bucket_name)
     filename="dart.json"
     with open(os.path.join(FDIR, '../' + filename), 'w') as f:
         json.dump(output, f, indent=4)
@@ -270,7 +270,7 @@ def run(testing):
     output = model_export(df, current_time)
 
     # upload export
-    upload_export(testing, output)
+    #upload_export(testing, output)
     upload_export_s3(testing, output)
     logger.debug("---%s seconds --- taken to run model" % (time.time() - start_time))
 
