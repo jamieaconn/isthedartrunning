@@ -8,6 +8,7 @@ import ftplib
 import numpy as np
 import requests
 import sqlite3
+import boto3
 
 # local modules
 from logfuncts import logger
@@ -20,7 +21,7 @@ k = 0.07
 scale_m = 1.943
 scale_a = 0.263
 delay = np.timedelta64(60, 'm') # 60 minutes
-
+delay_timesteps = 4
 FDIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE_PATH = os.path.join(FDIR, '../data.db')
 
@@ -203,6 +204,9 @@ def model_export(df, current_time):
     return output
 # # Write export to json
 
+def fb_cache_update():
+    from local_info import facebook_access 
+    r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : facebook_access})
 
 def upload_export(testing, output):
     """Upload json file to webpage via ftp and then force fb to update cache"""
@@ -217,11 +221,27 @@ def upload_export(testing, output):
         ftp.cwd(ftp_dir)
 
     ftp.storbinary("STOR " + filename, open(os.path.join(FDIR, '../' + filename)), 1024)
+    fb_cache_update()
 
-    from local_info import facebook_access 
+
+
+def upload_export_s3(testing, output):
+    from local_info import aws_access_key_id, aws_secret_access_key, region_name, bucket_name
+    session = boto3.Session(
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
+        region_name=region_name
+    )
+    s3 = session.resource('s3')
+    bucket = s3.bucket(bucket_name)
+    filename="dart.json"
+    with open(os.path.join(FDIR, '../' + filename), 'w') as f:
+        json.dump(output, f, indent=4)
     
-    r = requests.post("https://graph.facebook.com", data={'scrape': 'True', 'id' : '  http://isthedartrunning.co.uk/', 'access_token' : facebook_access})
+    with open(os.path.join(FDIR, '../' + filename)) as data:
+        bucket.put_object(Key=filename, Body=data, ContentType="text/json")
 
+    fb_cache_update()
 
 def run(testing):
     start_time = time.time()
@@ -251,5 +271,6 @@ def run(testing):
 
     # upload export
     upload_export(testing, output)
+    upload_export_s3(testing, output)
     logger.debug("---%s seconds --- taken to run model" % (time.time() - start_time))
 
