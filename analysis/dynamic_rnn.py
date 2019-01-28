@@ -10,7 +10,7 @@ import sys
 import tensorflow as tf
 import warnings
 
-from dart_rnn_working import *
+from rnn_functions import *
 
 
 # Parameters

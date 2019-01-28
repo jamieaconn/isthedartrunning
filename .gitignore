@@ -17,3 +17,4 @@ ENV/*
 analysis/.ipynb_checkpoints/*
 .DS_Store
 analysis/env
+analysis/models
