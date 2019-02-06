@@ -23,14 +23,17 @@ def load_data():
     df = modelLib.preprocessing(df)
 
     # take a nice section 
-    start_date = "2016-08-01 00:00:00"
-    end_date = "2018-06-14 18:00:00"
+    start_date = "2018-01-01 00:00:00"
+    end_date = "2019-01-01 00:00:00"
     df = df[(df.index>=start_date) & (df.index < end_date)]
 
-    # some null values but let's just set them to base level 0.4
-    df.level = df.level.fillna(method="pad")
-    train_df = df.iloc[:32772,:]
-    test_df = df.iloc[32772:,:]
+    train_df = df.iloc[:int(df.shape[0]/2),:]
+    test_df = df.iloc[int(df.shape[0]/2):,:]
+    plt.plot(df.model_rain)
+    plt.plot(df.level)
+
+    plt.xticks(rotation=90)
+    plt.show()
 
     return train_df, test_df
 
@@ -48,8 +51,8 @@ def create_random_samples(df, parameters, rain_threshold=0):
     while len(X) < batch_size:
         i = random.randint(0, raw_X.shape[0] - num_steps)
         x = raw_X[i: i+num_steps]
-        # This means we get fewer samples with no rain
         
+        # This means we get fewer samples with no rain
         if sum(x) < rain_threshold:
             continue
             
@@ -200,6 +203,9 @@ def bucket_predict(inputs, num_level_updates):
         x = X[i,:,:]
         p = x[:, 2]
         starting_level = x[num_level_updates-1,2]
+        # this fixes the math domain error that occurs for levels below modelLib.scale_a parameter
+        if starting_level < modelLib.scale_a:
+            starting_level = 0.264
         storage=modelLib.f_inv(modelLib.g_inv(starting_level))
     
         for j in range(x.shape[0]-num_level_updates):
