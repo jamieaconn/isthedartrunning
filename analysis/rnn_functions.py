@@ -23,9 +23,12 @@ def load_data():
     df = modelLib.preprocessing(df)
 
     # take a nice section 
-    start_date = "2018-01-01 00:00:00"
+    start_date = "2016-08-01 00:00:00"
     end_date = "2019-01-01 00:00:00"
     df = df[(df.index>=start_date) & (df.index < end_date)]
+    
+    # some null values but let's just set them to base level 0.4
+    df.level = df.level.fillna(method="pad")
 
     train_df = df.iloc[:int(df.shape[0]/2),:]
     test_df = df.iloc[int(df.shape[0]/2):,:]
@@ -54,7 +57,8 @@ def create_random_samples(df, parameters, rain_threshold=0):
         
         # This means we get fewer samples with no rain
         if sum(x) < rain_threshold:
-            continue
+            if random.randint(0, 10) > 4:
+                continue
             
     
         y = raw_Y[i: i+num_steps]
@@ -81,6 +85,7 @@ def generate_graph(parameters):
     num_layers = parameters["num_layers"]
     learning_rate = parameters["learning_rate"]
     batch_size = parameters["batch_size"]
+    num_level_updates = parameters["num_level_updates"]
     
     tf.reset_default_graph()
     x = tf.placeholder(tf.float32, [None, None, num_features], name='input_placeholder')
@@ -102,7 +107,7 @@ def generate_graph(parameters):
     # remove dimension equal to 1
     predictions = tf.squeeze(rnn_outputs)
 
-    losses = tf.losses.mean_squared_error(y, predictions)
+    losses = tf.losses.mean_squared_error(y[num_level_updates:], predictions[num_level_updates:])
     total_loss = tf.reduce_mean(losses)
     train_step = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
     graph = {
@@ -205,7 +210,7 @@ def bucket_predict(inputs, num_level_updates):
         starting_level = x[num_level_updates-1,2]
         # this fixes the math domain error that occurs for levels below modelLib.scale_a parameter
         if starting_level < modelLib.scale_a:
-            starting_level = 0.264
+            starting_level = 0.265
         storage=modelLib.f_inv(modelLib.g_inv(starting_level))
     
         for j in range(x.shape[0]-num_level_updates):
