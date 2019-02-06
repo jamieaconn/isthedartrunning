@@ -9,16 +9,6 @@
     <meta property="og:type"               content="website" />
     <meta property="fb:app_id"               content="246515359021141" />
     <meta property="og:title"              content="is the dart running?" />
-    <?php
-        $contents = file_get_contents("dart.json"); 
-        $contents1 = json_decode($contents);
-        $text = $contents1->text;
-        if (strlen($text) < 4){
-            $img = "http://www.isthedartrunning.co.uk/" . $text . ".jpg";
-        } else {
-            $img = "http://www.isthedartrunning.co.uk/EXCITED.jpg";
-        }
-    ?>
     <meta property="og:description"        content="<?= $text ?>" />
     <meta property="og:image"        content="<?= $img ?>" />
     <link href="mycss.css" rel="stylesheet">
