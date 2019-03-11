@@ -8,7 +8,7 @@ function drawChart() {
         async: false
     }).done(function (results) {
         updated_date = new Date(results.current_time / 1000);
-        document.querySelector('.updated').innerHTML = "Latest model run:   " + updated_date.toLocaleDateString() + " " + updated_date.toLocaleTimeString();
+        document.querySelector('#updated').innerHTML = "Latest model run:   " + updated_date.toLocaleDateString() + " " + updated_date.toLocaleTimeString();
         text = results.text;
 
         if (text.length < 5){
@@ -31,7 +31,7 @@ function drawChart() {
                 parseFloat(row.predict)
             ]);
         });
-        if (screen.availWidth < 350) {
+        if (screen.availWidth < 400) {
             var legend = {position: 'top', textStyle: {fontSize: 8}};
         } else {
             var legend = {position: 'top'};
@@ -59,8 +59,6 @@ function drawChart() {
 
         var chart = new google.visualization.ComboChart($('#chart_div').get(0));
         chart.draw(data, options);
-
-
     });  
     
 }
