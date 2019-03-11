@@ -7,7 +7,7 @@ from local_info import aws_access_key_id, aws_secret_access_key, region_name, bu
 image_file_extensions = [".jpg", ".png"]
 
 def upload_files(bucket, path, ignore_images=True):
- 
+    print "test"
     for subdir, dirs, files in os.walk(path):
         for file in files:
             full_path = os.path.join(subdir, file)
@@ -48,5 +48,5 @@ if __name__ == "__main__":
     s3 = session.resource('s3')
     bucket = s3.Bucket(bucket_name)
     delete_all_files(bucket, ignore_images=True)
-    upload_files(bucket, 'upload/public_html', ignore_images=False)
+    upload_files(bucket, '../html', ignore_images=False)
 
