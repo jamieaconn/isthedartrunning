@@ -11,38 +11,30 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 
-    <link href="mycss.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 <!-- Bootstrap core CSS -->
 
-    <title>graph</title>
-
-
-
-
+    <title>Dart River Levels</title>
   </head>
-
   <body>
-      <ul><ul>
-        <hr>
-        <div class='updated'></div>
-        <hr>
-        Input data from:
-        <li>Environment Agency data API (Beta) </li>
-        <li>www.dartcom.co.uk/weather</li>
-        <li>http://www.metoffice.gov.uk/datapoint</li> 
-        <hr>
-        <div>Future predictions should be treated with scepticism</div>
-        <hr>
-      <hr>
-    <div class="row">
-      <div class="col-12">
-        <div id="chart_div" class="chart"></div>
+    <div class="container">
+      <div class="text-center" id="yesno"></div>
+      <div class="text-center" id="message"></div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <div id="chart_div" class="chart"></div>
+        </div>
+        <div class="col-12">
+          <div class='text-center' id="updated" style="padding-bottom: 50px"></div>
+        </div>
       </div>
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="graphScript.js"></script>
+    <script type="text/javascript" src="myScript.js"></script>
 
   </body>
 </html>

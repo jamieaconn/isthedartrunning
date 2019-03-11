@@ -1,0 +1,51 @@
+#yesno {
+  font-size: 10rem;
+}
+
+#message {
+  font-size: 3rem;
+}
+
+@media (min-width: 576px) {
+  #yesno {
+    font-size: 13rem;
+  }
+  #message {
+    font-size: 6rem;
+  }
+}
+
+
+@media (min-width: 768px) {
+  #yesno {
+    font-size: 16rem;
+  }
+  #message {
+    font-size: 7rem;
+  }
+}
+
+@media (min-width: 992px) {
+  #yesno {
+    font-size: 20rem;
+  }
+  #message {
+    font-size: 8rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  #yesno {
+    font-size: 25rem;
+  }
+  #message {
+    font-size: 10rem;
+  }
+}
+
+
+
+.chart {
+    width: 100%; 
+    min-height: 450px;
+}
