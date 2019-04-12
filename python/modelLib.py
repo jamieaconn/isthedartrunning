@@ -1,30 +1,19 @@
 import math
 import time
-import sys
 import json
 import pandas as pd
 import os
-import ftplib
 import numpy as np
-import requests
 import sqlite3
 import boto3
 import tensorflow as tf
 
-# local modules
 from logfuncts import logger
 
-
-time_format = "%Y-%m-%dT%H:%M"
-
-
-k = 0.07
-scale_m = 1.943
-scale_a = 0.263
-delay = np.timedelta64(60, 'm') # 60 minutes
-delay_timesteps = 4
 FDIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE_PATH = os.path.join(FDIR, '../data.db')
+OUTPUT_PATH = os.path.join(FDIR, '../dart.json')
+RIVER_NAME = "dart"
 
 def f(x):
     return math.exp(k*x)
@@ -67,8 +56,6 @@ def rnn_model(df):
     num_steps = 80
     num_level_updates = 40
 
-    current_time = time.time()
-    current_time = pd.to_datetime(current_time - (current_time % (15*60)), unit='s')
     latest_level_update_timestamp = max(df[df.level.notnull()].index)
     latest_rain_time = max(df.index[df.cum_rain.notnull()])
     logger.info('latest rain update at: ' + str(latest_rain_time))
@@ -135,17 +122,25 @@ def rnn_model(df):
     output_df = output_df.round({'level': 3, 'predict': 3, 'model_rain' : 1})
     output_df = pd.DataFrame(output_df).replace({np.nan:None})
 
+    current_time = time.time()
+    current_time = pd.to_datetime(current_time - (current_time % (15*60)), unit='s')
     if latest_level_update_timestamp == current_time:
         current_level = output_df[output_df.timestamp == current_time]["level"].values[0]
     else:
-        current_level = output_df[output_df.timestamp == current_time]["predict"].values[0]
+        try:
+            current_level = output_df[output_df.timestamp == current_time]["predict"].values[0]
+        except:
+            current_level = None
 
     logger.info('currenct level: ' + str(current_level))
 
     minimum_threshold = 0.7
     massive_threshold = 1.5
 
-    if current_level > massive_threshold:
+
+    if current_level is None:
+        text = "?"
+    elif current_level > massive_threshold:
         text = "THE DART IS MASSIVE"
     elif current_level > minimum_threshold:
         text = 'YES'
@@ -164,9 +159,13 @@ def rnn_model(df):
     output['current_level'] = float(current_level) 
     output['text'] = text
     output['values'] = values
+    
+    with open(OUTPUT_PATH, 'w') as f:
+      json.dump(output, f, indent=4)
+    
     return output
 
-def upload_export_s3(testing, output):
+def upload_export_s3(testing_mode, output):
     from local_info import aws_access_key_id, aws_secret_access_key, region_name, bucket_name
     session = boto3.Session(
         aws_access_key_id=aws_access_key_id,
@@ -175,26 +174,17 @@ def upload_export_s3(testing, output):
     )
     s3 = session.resource('s3')
     bucket = s3.Bucket(bucket_name)
-    filename="dart.json"
-    print output
-    with open(os.path.join(FDIR, '../' + filename), 'w') as f:
-        json.dump(output, f, indent=4)
     
     with open(os.path.join(FDIR, '../' + filename)) as data:
         bucket.put_object(Key=filename, Body=data, ContentType="text/json")
 
 
-def run(testing):
-    start_time = time.time()
-
-    # # Load data from sql database into pandas df
-
-    df = load_dataframe_from_sql(river="dart", limit=130)
-
+def run(testing_mode):
+    df = load_dataframe_from_sql(river=RIVER_NAME, limit=130)
     output = rnn_model(df)    
+    if not testing_mode:
+        upload_export_s3(testing_mode, output)
 
-    # upload export
-    #upload_export(testing, output)
-    upload_export_s3(testing, output)
-    logger.debug("---%s seconds --- taken to run model" % (time.time() - start_time))
+if __name__ == "__main__":
+    run(testing_mode=True)
 
