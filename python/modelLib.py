@@ -12,17 +12,11 @@ from logfuncts import logger
 
 FDIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE_PATH = os.path.join(FDIR, '../data.db')
-OUTPUT_PATH = os.path.join(FDIR, '../dart.json')
+OUTPUT_PATH = os.path.join(FDIR, '../html/dart.json')
 RIVER_NAME = "dart"
 
-def f(x):
-    return math.exp(k*x)
-def g(x):
-    return (scale_m * x) + scale_a
-def f_inv(x):
-    return math.log(x) / k
-def g_inv(x):
-    return (x - scale_a) / scale_m
+MIMIMUM_THRESHOLD = 0.7
+MAXIMUM_THRESHOLD = 1.5
 
 def load_dataframe_from_sql(river, limit=-1):
     """Load data from the database and return a pandas dataframe. 
@@ -50,25 +44,47 @@ def load_dataframe_from_sql(river, limit=-1):
 
     return df
 
-def rnn_model(df):
-    # Reindex to include missing timestamps and create new column for actual rain from cumulative rain
+def rnn_model(testing_mode, testing_timestamp):
+    if testing_mode:
+        current_time = pd.to_datetime(testing_timestamp)
+        df = load_dataframe_from_sql(river=RIVER_NAME, limit=-1)
+        df = df[df.index > current_time - pd.Timedelta('2days')]
+        df = df[df.index < current_time + pd.Timedelta('1days')]
+        df.loc[(df.index > current_time - pd.Timedelta('1days')), "level"] = None
+        df.loc[(df.index > current_time - pd.Timedelta('30minutes')), "cum_rain"] = None
 
-    num_steps = 80
-    num_level_updates = 40
+    else:
+        current_time = time.time()
+        current_time = pd.to_datetime(current_time - (current_time % (15*60)), unit='s')
+        df = load_dataframe_from_sql(river=RIVER_NAME, limit=130)
+
 
     latest_level_update_timestamp = max(df[df.level.notnull()].index)
     latest_rain_time = max(df.index[df.cum_rain.notnull()])
-    logger.info('latest rain update at: ' + str(latest_rain_time))
+    latest_forecast_rain_time = max(df.index[df.forecast.notnull()])
+    logger.debug("latest_level_update_timestamp: {value}".format(value=latest_level_update_timestamp))
+    logger.debug("latest_rain_time: {value}".format(value=latest_rain_time))
+    logger.debug("latest_forecast_rain_time: {value}".format(value=latest_forecast_rain_time))
 
-    # Remove rows after latest cum_rain value (no longer using forecast data) 
-    df = df[df.index <= latest_rain_time]
-
-    min_time = min(df.index)
-    max_time = max(df.index)
+    df = df[df.index <= latest_forecast_rain_time]
 
     # Fill in missing timestamps by reindexing
-    rng = pd.date_range(min_time, max_time + pd.Timedelta('2.5hours'), freq='15Min')
+    min_time = min(df.index)
+    max_time = max(df.index)
+    rng = pd.date_range(min_time, max_time, freq='15Min')
     df = df.reindex(rng)
+
+    num_level_updates = df[df.index <= latest_level_update_timestamp].shape[0]
+    num_rain_updates = df[df.index <= latest_rain_time].shape[0]
+    num_forecast_rain_updates = df[df.index <= latest_forecast_rain_time].shape[0]
+
+    logger.debug("num_level_updates: {value}".format(value=num_level_updates))
+    logger.debug("num_rain_updates: {value}".format(value=num_rain_updates))
+    logger.debug("num_forecast_rain_updates: {value}".format(value=num_forecast_rain_updates))
+
+
+    # Remove rows after latest cum_rain value (no longer using forecast data) 
+    #df = df[df.index <= latest_rain_time]
 
     # Convert cumulative rain to actual rain
     df['rain'] = df['cum_rain'].diff(periods=2)
@@ -76,25 +92,21 @@ def rnn_model(df):
     # negative values from diff are when the rain value resets so we set equal to the cumulative value
     df.loc[df['rain'] < 0, 'rain'] = df.loc[df['rain'] < 0, 'cum_rain']
 
-    df['model_rain'] = df["rain"]
+
+
+    df['model_rain'] = pd.concat(
+        (df[df.index <= latest_rain_time]["rain"],
+        df[df.index > latest_rain_time]["forecast"])
+    )
 
     # Interpolate model_rain
 
     df['model_rain'] = df['model_rain'].interpolate()
+    df['model_rain'] = df['model_rain'].fillna(0)
 
-    input_df = pd.concat((
-        df[df.index <=latest_level_update_timestamp].tail(num_level_updates),
-        df[df.index >latest_level_update_timestamp].tail(num_level_updates)
-    ))
-
-    x = input_df.model_rain.values         
-    y = input_df.level.fillna(0).values
-    timestamps = input_df.index.values
-
-    # need to padd out input arrays with zeros to get the correct shape
-    num_padding_steps = num_steps - x.shape[0] 
-    x = np.concatenate((x, np.zeros(num_padding_steps)))
-    y = np.concatenate((y, np.zeros(num_padding_steps)))   
+    x = df.model_rain.values         
+    y = df.level.fillna(0).values
+    timestamps = df.index.values
 
     update_vector = np.zeros(x.shape)
     update_vector[0:num_level_updates] = 1
@@ -107,23 +119,18 @@ def rnn_model(df):
     predict_fn = tf.contrib.predictor.from_saved_model(path_to_model)
     predict = predict_fn({"x":[x]})["predictions"]
 
-    # remove excess padding
-    predict = predict[:-num_padding_steps]
-    level = y[:-num_padding_steps,0]
-    rain = x[:-num_padding_steps,0]
 
     # set levels after latest update and predicts before to None
-    level[num_level_updates:] = None
+    y[num_level_updates:,0] = None
     predict[:num_level_updates-1] = None
 
     # create output json
-    output_df = pd.DataFrame({"timestamp":timestamps, "rain":rain, "level":level, "predict": predict})
+    output_df = pd.DataFrame({"timestamp":timestamps, "rain":x[:,0], "level":y[:,0], "predict": predict})
 
     output_df = output_df.round({'level': 3, 'predict': 3, 'model_rain' : 1})
     output_df = pd.DataFrame(output_df).replace({np.nan:None})
 
-    current_time = time.time()
-    current_time = pd.to_datetime(current_time - (current_time % (15*60)), unit='s')
+
     if latest_level_update_timestamp == current_time:
         current_level = output_df[output_df.timestamp == current_time]["level"].values[0]
     else:
@@ -134,15 +141,11 @@ def rnn_model(df):
 
     logger.info('currenct level: ' + str(current_level))
 
-    minimum_threshold = 0.7
-    massive_threshold = 1.5
-
-
     if current_level is None:
         text = "?"
-    elif current_level > massive_threshold:
+    elif current_level > MAXIMUM_THRESHOLD:
         text = "THE DART IS MASSIVE"
-    elif current_level > minimum_threshold:
+    elif current_level > MIMIMUM_THRESHOLD:
         text = 'YES'
     elif output_df[output_df.timestamp > current_time]["predict"].max() > minimum_threshold:
         text = "THE DART WILL BE UP SHORTLY"
@@ -156,16 +159,12 @@ def rnn_model(df):
 
     output = {}       
     output['current_time'] = current_time.value / 1000
-    output['current_level'] = float(current_level) 
+    output['current_level'] = current_level
     output['text'] = text
     output['values'] = values
-    
-    with open(OUTPUT_PATH, 'w') as f:
-      json.dump(output, f, indent=4)
-    
     return output
 
-def upload_export_s3(testing_mode, output):
+def upload_export_s3(output):
     from local_info import aws_access_key_id, aws_secret_access_key, region_name, bucket_name
     session = boto3.Session(
         aws_access_key_id=aws_access_key_id,
@@ -180,10 +179,10 @@ def upload_export_s3(testing_mode, output):
 
 
 def run(testing_mode):
-    df = load_dataframe_from_sql(river=RIVER_NAME, limit=130)
-    output = rnn_model(df)    
+    testing_timestamp = "2019-04-05 11:30:00" 
+    output = rnn_model(testing_mode, testing_timestamp)    
     if not testing_mode:
-        upload_export_s3(testing_mode, output)
+        upload_export_s3(output)
 
 if __name__ == "__main__":
     run(testing_mode=True)
