@@ -46,7 +46,8 @@ sudo pip install --upgrade virtualenv
 
 **create and activate virtualenv:**
 
-virtualenv ENV
+virtualenv ENV --python=python2.7
+
 
 source ENV/bin/activate
 
