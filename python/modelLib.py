@@ -118,18 +118,18 @@ def rnn_model(testing_mode, testing_timestamp):
     path_to_model = os.path.join(FDIR, model_name)
     predict_fn = tf.contrib.predictor.from_saved_model(path_to_model)
     predict = predict_fn({"x":[x]})["predictions"]
-
-
-    # set levels after latest update and predicts before to None
-    y[num_level_updates:,0] = None
+    
+    rain = np.concatenate((x[:num_rain_updates,0], np.zeros(x.shape[0] - num_rain_updates) * np.nan))
+    forecast = np.concatenate((np.zeros(num_rain_updates) * np.nan, x[num_rain_updates:,0]))
+    level = y[:,0]
+    level[num_level_updates:] = None
     predict[:num_level_updates-1] = None
 
     # create output json
-    output_df = pd.DataFrame({"timestamp":timestamps, "rain":x[:,0], "level":y[:,0], "predict": predict})
+    output_df = pd.DataFrame({"timestamp":timestamps, "rain":rain, "forecast": forecast, "level":level, "predict": predict})
 
-    output_df = output_df.round({'level': 3, 'predict': 3, 'model_rain' : 1})
+    output_df = output_df.round({'level': 3, 'predict': 3, 'rain' : 1, 'forecast': 1})
     output_df = pd.DataFrame(output_df).replace({np.nan:None})
-
 
     if latest_level_update_timestamp == current_time:
         current_level = output_df[output_df.timestamp == current_time]["level"].values[0]

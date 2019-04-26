@@ -20,6 +20,7 @@ function drawChart() {
         var data = new google.visualization.DataTable();
         data.addColumn('datetime', 'Time');
         data.addColumn('number', 'Rain');
+        data.addColumn('number', 'Forecast');
         data.addColumn('number', 'Level');
         data.addColumn('number', 'Prediction');
 
@@ -27,6 +28,7 @@ function drawChart() {
             data.addRow([
                 (new Date(row.timestamp / 1000)), 
                 parseFloat(row.rain),
+                parseFloat(row.forecast),
                 parseFloat(row.level),
                 parseFloat(row.predict)
             ]);
@@ -45,15 +47,16 @@ function drawChart() {
             },
             vAxis : {
                 viewWindow: {
-                    max: 2,
+                    max: 2.5,
                     min: 0
                 }
             },
             series : {
                 0: { type: 'bars' },
-                2: { lineDashStyle: [4, 4] }
+                1: { type: 'bars' },
+                3: { lineDashStyle: [4, 4] }
             },
-            colors: ['#999999', '#1c91c0', '#1c91c0']
+            colors: ['#080808','#A9A9A9', '#1c91c0', '#1c91c0']
 
         };
 
