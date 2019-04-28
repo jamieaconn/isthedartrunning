@@ -12,8 +12,9 @@ from logfuncts import logger
 
 FDIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE_PATH = os.path.join(FDIR, '../data.db')
-OUTPUT_PATH = os.path.join(FDIR, '../html/dart.json')
 RIVER_NAME = "dart"
+OUTPUT_FILENAME = RIVER_NAME + ".json"
+OUTPUT_PATH = os.path.join(FDIR, '../html', OUTPUT_FILENAME)
 
 MIMIMUM_THRESHOLD = 0.7
 MAXIMUM_THRESHOLD = 1.5
@@ -164,7 +165,7 @@ def rnn_model(testing_mode, testing_timestamp):
     output['values'] = values
     return output
 
-def upload_export_s3(output):
+def upload_export_s3():
     from local_info import aws_access_key_id, aws_secret_access_key, region_name, bucket_name
     session = boto3.Session(
         aws_access_key_id=aws_access_key_id,
@@ -173,16 +174,17 @@ def upload_export_s3(output):
     )
     s3 = session.resource('s3')
     bucket = s3.Bucket(bucket_name)
-    
-    with open(os.path.join(FDIR, '../' + filename)) as data:
-        bucket.put_object(Key=filename, Body=data, ContentType="text/json")
+    with open(os.path.join(OUTPUT_PATH)) as data:
+        bucket.put_object(Key=OUTPUT_FILENAME, Body=data, ContentType="text/json")
 
 
-def run(testing_mode):
+def run(testing_mode=False):
     testing_timestamp = "2019-04-05 11:30:00" 
     output = rnn_model(testing_mode, testing_timestamp)    
+    with open(OUTPUT_PATH, 'w') as f:
+      json.dump(output, f, indent=4)
     if not testing_mode:
-        upload_export_s3(output)
+        upload_export_s3()
 
 if __name__ == "__main__":
     run(testing_mode=True)
