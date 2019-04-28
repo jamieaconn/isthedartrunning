@@ -17,14 +17,30 @@ if module_path not in sys.path:
 import modelLib
 from logfuncts import logger
 
-def load_data():
+def load_data(start_date="2016-08-01 00:00:00", end_date = "2019-01-01 00:00:00"):
     df = modelLib.load_dataframe_from_sql("dart", limit=-1)
+    
+    # Fill in missing timestamps by reindexing
+    min_time = min(df.index)
+    max_time = max(df.index)
+    rng = pd.date_range(min_time, max_time, freq='15Min')
+    df = df.reindex(rng)
 
-    df = modelLib.preprocessing(df)
+    # Convert cumulative rain to actual rain
+    df['rain'] = df['cum_rain'].diff(periods=2)
 
-    # take a nice section 
-    start_date = "2016-08-01 00:00:00"
-    end_date = "2019-01-01 00:00:00"
+    # negative values from diff are when the rain value resets so we set equal to the cumulative value
+    df.loc[df['rain'] < 0, 'rain'] = df.loc[df['rain'] < 0, 'cum_rain']
+
+    # For training we always use the recorded rainfall rather than forecast
+    df['model_rain'] = df['rain']
+
+    # Interpolate model_rain
+
+    df['model_rain'] = df['model_rain'].interpolate()
+    df['model_rain'] = df['model_rain'].fillna(0)
+
+    # take section of data for training
     df = df[(df.index>=start_date) & (df.index < end_date)]
     
     # some null values but let's just set them to base level 0.4
