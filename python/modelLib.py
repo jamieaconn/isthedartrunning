@@ -149,7 +149,7 @@ def rnn_model(testing_mode, testing_timestamp):
         text = "THE DART IS MASSIVE"
     elif current_level > MIMIMUM_THRESHOLD:
         text = 'YES'
-    elif output_df[output_df.timestamp > current_time]["predict"].max() > MIMIMUM_THRESHOLD:
+    elif output_df[(output_df.timestamp > current_time) & (output_df.timestamp < (current_time + pd.Timedelta('1hours')))]["predict"].max() > MIMIMUM_THRESHOLD:
         text = "THE DART WILL BE UP SHORTLY"
     else:
         text = 'NO'    
