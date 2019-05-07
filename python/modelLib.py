@@ -23,9 +23,9 @@ def load_dataframe_from_sql(river, limit=-1):
     """Load data from the database and return a pandas dataframe. 
     Limit param specifies number of rows returned. Default is to return all"""
     if limit > 0:
-        logger.debug("loading df for river {river} from sql with row limit of {limit}".format(river=river, limit=limit))
+        logger.info("loading df for river {river} from sql with row limit of {limit}".format(river=river, limit=limit))
     else:
-        logger.debug("loading entire df for river {river} from sql".format(river=river))
+        logger.info("loading entire df for river {river} from sql".format(river=river))
     con = sqlite3.connect(DATABASE_PATH)
     cur = con.cursor()
     query = """
@@ -58,14 +58,15 @@ def rnn_model(testing_mode, testing_timestamp):
         current_time = time.time()
         current_time = pd.to_datetime(current_time - (current_time % (15*60)), unit='s')
         df = load_dataframe_from_sql(river=RIVER_NAME, limit=130)
+    logger.info("current_time: {value}".format(value=current_time))
 
 
     latest_level_update_timestamp = max(df[df.level.notnull()].index)
     latest_rain_time = max(df.index[df.cum_rain.notnull()])
     latest_forecast_rain_time = max(df.index[df.forecast.notnull()])
-    logger.debug("latest_level_update_timestamp: {value}".format(value=latest_level_update_timestamp))
-    logger.debug("latest_rain_time: {value}".format(value=latest_rain_time))
-    logger.debug("latest_forecast_rain_time: {value}".format(value=latest_forecast_rain_time))
+    logger.info("latest_level_update_timestamp: {value}".format(value=latest_level_update_timestamp))
+    logger.info("latest_rain_time: {value}".format(value=latest_rain_time))
+    logger.info("latest_forecast_rain_time: {value}".format(value=latest_forecast_rain_time))
 
     df = df[df.index <= latest_forecast_rain_time]
 
@@ -79,9 +80,9 @@ def rnn_model(testing_mode, testing_timestamp):
     num_rain_updates = df[df.index <= latest_rain_time].shape[0]
     num_forecast_rain_updates = df[df.index <= latest_forecast_rain_time].shape[0]
 
-    logger.debug("num_level_updates: {value}".format(value=num_level_updates))
-    logger.debug("num_rain_updates: {value}".format(value=num_rain_updates))
-    logger.debug("num_forecast_rain_updates: {value}".format(value=num_forecast_rain_updates))
+    logger.info("num_level_updates: {value}".format(value=num_level_updates))
+    logger.info("num_rain_updates: {value}".format(value=num_rain_updates))
+    logger.info("num_forecast_rain_updates: {value}".format(value=num_forecast_rain_updates))
 
 
     # Remove rows after latest cum_rain value (no longer using forecast data) 
@@ -148,7 +149,7 @@ def rnn_model(testing_mode, testing_timestamp):
         text = "THE DART IS MASSIVE"
     elif current_level > MIMIMUM_THRESHOLD:
         text = 'YES'
-    elif output_df[output_df.timestamp > current_time]["predict"].max() > MIMIMUM_THRESHOLD:
+    elif output_df[(output_df.timestamp > current_time) & (output_df.timestamp < (current_time + pd.Timedelta('1hours')))]["predict"].max() > MIMIMUM_THRESHOLD:
         text = "THE DART WILL BE UP SHORTLY"
     else:
         text = 'NO'    
