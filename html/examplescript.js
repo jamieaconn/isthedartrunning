@@ -3,7 +3,7 @@ google.setOnLoadCallback(drawChart);
 
 function drawChart() {
     var jsonData = $.ajax({
-        url: "dart.json",
+        url: "example.json",
         dataType: "json",
         async: false
     }).done(function (results) {
