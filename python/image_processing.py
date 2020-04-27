@@ -33,7 +33,7 @@ def flatten_radar_image(image):
       # The first two colours, white and grey are both 0 rainfall
       p = 0 if i==1 else i
       final_image[flattened_image==v]=p
-    return(final_image)
+    return(final_image.astype(np.int8))
 
 def unflatten_radar_image(image):
   converted_image = np.zeros((500, 500), dtype=int)
@@ -42,18 +42,26 @@ def unflatten_radar_image(image):
   #TODO...
 
 
+import time
+
+start = time.time()
 
 filenames = os.listdir('../image/radar')
 
-h5f = h5py.File('data.h5', 'w')
+
+h5f = h5py.File('images.h5', 'w')
 
 flattened_images = []
 for i, filename in enumerate(filenames):
+  if i % 100 == 0:
+    print i
   image = imageio.imread('../image/radar/' + filename)
-  flattened_images.append(flatten_radar_image(image))
+  flattened_image = flatten_radar_image(image)
+  h5f.create_dataset(filename, data=flattened_image)
 
-  if i > 2000:
+  if i > 300:
     break
 
-h5f.create_dataset('dataset_1', data=flattened_images)
+
+print time.time() - start
 
