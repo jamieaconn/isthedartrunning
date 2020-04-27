@@ -3,6 +3,7 @@ import imageio
 import time
 import os
 import random
+import h5py
 
 # List of colours used in order of rainfall rate
 colours = np.array([
@@ -42,13 +43,17 @@ def unflatten_radar_image(image):
 
 
 
-filepaths = os.listdir('../image/radar')
+filenames = os.listdir('../image/radar')
+
+h5f = h5py.File('data.h5', 'w')
 
 flattened_images = []
-for i, filepath in enumerate(filepaths):
-  print(i)
-  image = imageio.imread('../image/processed/' + filepath)
-  flattened_image = flatten_radar_image(image)
-  imageio.imwrite('../image/processed/' + filepath, flattened_image)
-  if i > 200:
+for i, filename in enumerate(filenames):
+  image = imageio.imread('../image/radar/' + filename)
+  flattened_images.append(flatten_radar_image(image))
+
+  if i > 2000:
     break
+
+h5f.create_dataset('dataset_1', data=flattened_images)
+
