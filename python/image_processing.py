@@ -56,6 +56,8 @@ flattened_images = []
 for i, filename in enumerate(filenames):
   if i % 100 == 0:
     print i
+  if os.path.isfile('../image/radar/' + filename)==False:
+    continue
   image = imageio.imread('../image/radar/' + filename)
   flattened_image = flatten_radar_image(image)
   h5f.create_dataset(filename, data=flattened_image)
