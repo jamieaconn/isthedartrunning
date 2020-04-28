@@ -4,6 +4,7 @@ import time
 import os
 import random
 import h5py
+import upload_model_data_s3
 
 # List of colours used in order of rainfall rate
 colours = np.array([
@@ -64,4 +65,4 @@ for i, filename in enumerate(filenames):
 
 
 print time.time() - start
-
+upload_model_data_s3.upload_to_s3("images.h5", "images.h5")
