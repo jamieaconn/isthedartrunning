@@ -34,7 +34,7 @@ def flatten_radar_image(image):
       # The first two colours, white and grey are both 0 rainfall
       p = 0 if i==1 else i
       final_image[flattened_image==v]=p
-    return(final_image.astype(np.int8))
+    return(final_image.astype(np.uint8))
 
 def unflatten_radar_image(image):
   converted_image = np.zeros((500, 500), dtype=int)
@@ -49,18 +49,19 @@ start = time.time()
 
 filenames = os.listdir('../image/radar')
 
-
-h5f = h5py.File('images.h5', 'w')
-
-flattened_images = []
 for i, filename in enumerate(filenames):
   if i % 100 == 0:
     print i
-  if os.path.isfile('../image/radar/' + filename)==False:
+    print time.time() - start
+  try:
+    image = imageio.imread('../image/radar/' + filename)
+  except:
+    print "failed to read" + filename
     continue
-  image = imageio.imread('../image/radar/' + filename)
   flattened_image = flatten_radar_image(image)
-  h5f.create_dataset(filename, data=flattened_image)
+  imageio.imwrite('temp.png', flattened_image)
+  upload_model_data_s3.upload_to_s3('temp.png', 'images/'+filename)
 
 print time.time() - start
-upload_model_data_s3.upload_to_s3("images.h5", "images.h5")
+
+
