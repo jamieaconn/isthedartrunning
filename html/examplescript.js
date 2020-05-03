@@ -8,14 +8,7 @@ function drawChart() {
         async: false
     }).done(function (results) {
         updated_date = new Date(results.current_time / 1000);
-        document.querySelector('#updated').innerHTML = "Latest model run:   " + updated_date.toLocaleDateString() + " " + updated_date.toLocaleTimeString();
         text = results.text;
-
-        if (text.length < 5){
-          document.querySelector('#yesno').innerHTML = text;
-        } else {
-          document.querySelector('#message').innerHTML = text;
-        }
 
         var data = new google.visualization.DataTable();
         data.addColumn('datetime', 'Time');
