@@ -47,6 +47,6 @@ if __name__ == "__main__":
     )
     s3 = session.resource('s3')
     bucket = s3.Bucket(bucket_name)
-    delete_all_files(bucket, ignore_images=True)
+    #delete_all_files(bucket, ignore_images=True)
     upload_files(bucket, '../html', ignore_images=False)
 
