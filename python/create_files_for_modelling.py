@@ -20,19 +20,22 @@ df.to_csv("~/analysis.csv")
 
 df["image_filenames"] = df.index.strftime('%Y-%m-%dT%H:%M:00.png')
 
+train_df = df.iloc[:int(df.shape[0]/5),:]
+test_df = df.iloc[int(df.shape[0]/5):int(df.shape[0]/10),:]
 start = time.time()
-images = np.array([], dtype=np.uint8).reshape(0, 500, 500)
-for i, filename in enumerate(df.image_filenames.values):
+
+train_images = np.array([], dtype=np.uint8).reshape(0, 250, 250)
+for i, filename in enumerate(train_df.image_filenames.values):
   if i % 100 == 0:
     print i
     print time.time() - start
   try:
     image = imageio.imread('../image/radar/' + filename)
+    flattened_image = image_processing.flatten_radar_image(image)   
   except:
     print "failed to read" + filename
-    #flattened_image = np.zeros((500, 500)) 
-    continue
-  flattened_image = image_processing.flatten_radar_image(image)   
-  imageio.imwrite('~/images'+filename, flattened_image[250:,:250])
-  #f.create_dataset(filename, (500, 500), data=flattened_image)
-  #images = np.concatenate((images, np.expand_dims(flattened_image, 0)))
+    flattened_image = np.zeros((500, 500), dtype=uint8) 
+  #imageio.imwrite('~/images'+filename, flattened_image[250:,:250])
+  train_images = np.concatenate((train_images, np.expand_dims(flattened_image[250:,:250], 0)))
+#f.create_dataset(filename, (500, 500), data=flattened_image)
+
