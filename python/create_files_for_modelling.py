@@ -57,5 +57,6 @@ for i, filename in enumerate(test_df.image_filenames.values):
     flattened_image = np.zeros((500, 500), dtype=uint8) 
   #imageio.imwrite('~/images'+filename, flattened_image[250:,:250])
   images = np.concatenate((images, np.expand_dims(flattened_image[250:,:250], 0)))
-f.create_dataset('test', images)
 
+
+f.create_dataset('test', images)
