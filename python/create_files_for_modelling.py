@@ -14,25 +14,48 @@ min_time = min(df.index)
 max_time = max(df.index)
 rng = pd.date_range(min_time, max_time, freq='15Min')
 df = df.reindex(rng)
-
-df.to_csv("~/analysis.csv")
-
+df.level = df.level.fillna(method="pad")
 
 df["image_filenames"] = df.index.strftime('%Y-%m-%dT%H:%M:00.png')
 
+train_df = df.iloc[:int(df.shape[0]/5),:]
+test_df = df.iloc[int(df.shape[0]/5):int(df.shape[0]/10),:]
+
+train_df.to_csv("~/train.csv")
+test_df.to_csv("~/test.csv")
+
+f = h5py.File('images.h5', 'w')
 start = time.time()
-images = np.array([], dtype=np.uint8).reshape(0, 500, 500)
-for i, filename in enumerate(df.image_filenames.values):
+
+images = np.array([], dtype=np.uint8).reshape(0, 250, 250)
+for i, filename in enumerate(train_df.image_filenames.values):
   if i % 100 == 0:
     print i
     print time.time() - start
   try:
     image = imageio.imread('../image/radar/' + filename)
+    flattened_image = image_processing.flatten_radar_image(image)   
   except:
     print "failed to read" + filename
-    #flattened_image = np.zeros((500, 500)) 
-    continue
-  flattened_image = image_processing.flatten_radar_image(image)   
-  imageio.imwrite('~/images'+filename, flattened_image[250:,:250])
-  #f.create_dataset(filename, (500, 500), data=flattened_image)
-  #images = np.concatenate((images, np.expand_dims(flattened_image, 0)))
+    flattened_image = np.zeros((500, 500), dtype=uint8) 
+  #imageio.imwrite('~/images'+filename, flattened_image[250:,:250])
+  images = np.concatenate((images, np.expand_dims(flattened_image[250:,:250], 0)))
+
+
+f.create_dataset('train', images)
+
+images = np.array([], dtype=np.uint8).reshape(0, 250, 250)
+for i, filename in enumerate(test_df.image_filenames.values):
+  if i % 100 == 0:
+    print i
+    print time.time() - start
+  try:
+    image = imageio.imread('../image/radar/' + filename)
+    flattened_image = image_processing.flatten_radar_image(image)   
+  except:
+    print "failed to read" + filename
+    flattened_image = np.zeros((500, 500), dtype=uint8) 
+  #imageio.imwrite('~/images'+filename, flattened_image[250:,:250])
+  images = np.concatenate((images, np.expand_dims(flattened_image[250:,:250], 0)))
+f.create_dataset('test', images)
+
