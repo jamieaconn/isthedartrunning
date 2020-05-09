@@ -10,6 +10,11 @@ start_date='2017-12-10 16:15:00'
 end_date='2019-04-14 11:45:0'
 df = modelLib.load_dataframe_from_sql("dart", limit=-1)
 df = df[(df.index>=start_date) & (df.index < end_date)]
+min_time = min(df.index)
+max_time = max(df.index)
+rng = pd.date_range(min_time, max_time, freq='15Min')
+df = df.reindex(rng)
+
 df.to_csv("~/analysis.csv")
 
 
