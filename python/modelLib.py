@@ -164,6 +164,7 @@ def rnn_model(testing_mode, testing_timestamp):
     output['current_level'] = current_level
     output['text'] = text
     output['values'] = values
+    output['broken'] = False
     return output
 
 def upload_export_s3():
