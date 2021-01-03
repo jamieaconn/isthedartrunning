@@ -36,7 +36,7 @@ test_df.to_csv("test.csv")
 f = h5py.File('images.h5', 'w')
 start = time.time()
 
-images = np.array([], dtype=np.uint8).reshape(0, 12, 12)
+images = np.array([], dtype=np.uint8).reshape(0, 100, 100)
 for i, filename in enumerate(train_df.image_filenames.values):
   if i % 100 == 0:
     print i
@@ -47,11 +47,11 @@ for i, filename in enumerate(train_df.image_filenames.values):
   except:
     print "failed to read" + filename
     flattened_image = np.zeros((500, 500), dtype=np.uint8) 
-  images = np.concatenate((images, np.expand_dims(flattened_image[:,396:408, 230:242], 0)))
+  images = np.concatenate((images, np.expand_dims(flattened_image[376:476, 210:310], 0)))
 
 
 f.create_dataset('train', data=images, dtype="uint8")
-images = np.array([], dtype=np.uint8).reshape(0, 12, 12)
+images = np.array([], dtype=np.uint8).reshape(0, 100, 100)
 for i, filename in enumerate(test_df.image_filenames.values):
   if i % 100 == 0:
     print i
@@ -62,7 +62,7 @@ for i, filename in enumerate(test_df.image_filenames.values):
   except:
     print "failed to read" + filename
     flattened_image = np.zeros((500, 500), dtype=np.uint8) 
-  images = np.concatenate((images, np.expand_dims(flattened_image[:,396:408, 230:242], 0)))
+  images = np.concatenate((images, np.expand_dims(flattened_image[376:476, 210:310], 0)))
 
 f.create_dataset('test', data=images, dtype="uint8")
 
