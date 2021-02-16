@@ -136,12 +136,14 @@ def level(testing):
         cur = con.cursor()
         data = r.json()
         for x in range(0, len(data['items'])):
-            time = data['items'][x]['dateTime']
-            time = time[:16]
-            value = data['items'][x]['value']
-            cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time))
-            cur.execute("UPDATE {river} SET level=({level_val}), predict=({predict_val}) WHERE timestamp = ('{time_val}')".format(river = river, level_val = value, predict_val = value, time_val = time))
-        
+            try:
+                time = data['items'][x]['dateTime']
+                time = time[:16]
+                value = data['items'][x]['value']
+                cur.execute("INSERT OR IGNORE INTO {river} (timestamp) VALUES('{time_val}')".format(river=river,time_val = time))
+                cur.execute("UPDATE {river} SET level=({level_val}), predict=({predict_val}) WHERE timestamp = ('{time_val}')".format(river = river, level_val = value, predict_val = value, time_val = time))
+            except:
+                pass
         con.commit()
         con.close()
 
