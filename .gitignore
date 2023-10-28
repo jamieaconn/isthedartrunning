@@ -2,9 +2,7 @@
 *.h5
 *.db
 *.json
-forecast
 local_info.py
-image
 *.pyc
 analysis/.ipynb_checkpoints/*
 python/.ipynb_checkpoints/*

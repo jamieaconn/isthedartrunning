@@ -9,5 +9,5 @@ def create_db(river, database):
 
 
 if __name__ == "__main__":
-    create_db('dart', '../data.db')
-    create_db('nevis', '../data.db')
+    create_db('dart', 'data.db')
+    create_db('nevis', 'data.db')
