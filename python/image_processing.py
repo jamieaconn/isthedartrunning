@@ -47,15 +47,15 @@ def upload_all_images_s3():
 
     for i, filename in enumerate(filenames):
       if i % 100 == 0:
-        print i
-        print time.time() - start
+        print(i)
+        print(time.time() - start)
       try:
         image = imageio.imread('../image/radar/' + filename)
       except:
-        print "failed to read" + filename
+        print("failed to read" + filename)
         continue
       flattened_image = flatten_radar_image(image)
       imageio.imwrite('temp.png', flattened_image)
       upload_model_data_s3.upload_to_s3('temp.png', 'images/'+filename)
 
-    print time.time() - start
+    print(time.time() - start)

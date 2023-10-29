@@ -7,7 +7,7 @@ from local_info import aws_access_key_id, aws_secret_access_key, region_name, bu
 image_file_extensions = [".jpg", ".png"]
 
 def upload_files(bucket, path, ignore_images=True):
-    print "test"
+    print("test")
     for subdir, dirs, files in os.walk(path):
         for file in files:
             full_path = os.path.join(subdir, file)
@@ -35,7 +35,7 @@ def delete_all_files(bucket, ignore_images=False):
         if ignore_images:
             if any(image_extension in key.key for image_extension in image_file_extensions):
                 return
-        print("delete", key.key)
+        print(("delete", key.key))
         key.delete()
 
 

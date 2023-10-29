@@ -4,10 +4,10 @@ import modelLib
 
 def main(timing, testing):
 	if testing:
-		print "Running model on", timing, "in testing mode"
+		print(("Running model on", timing, "in testing mode"))
 	else:
-		print "Running model on", timing
-	print
+		print(("Running model on", timing))
+	print()
 
 	if timing == "hour": 
 		scraping.update_forecast_rainfall(testing)

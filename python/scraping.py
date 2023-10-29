@@ -129,7 +129,7 @@ def level(testing):
     url = 'http://environment.data.gov.uk/flood-monitoring/id/stations/46126/readings?startdate=' + start_date + '&enddate=' + end_date + '&_sorted'
     r = requests.get(url)
     if(r.status_code != 200):
-        print "level json request failed"
+        print("level json request failed")
         return 0
     else:
         con = sqlite3.connect(database)

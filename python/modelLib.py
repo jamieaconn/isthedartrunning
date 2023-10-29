@@ -116,11 +116,12 @@ def rnn_model(testing_mode, testing_timestamp):
     x = np.column_stack([x, update_vector, update_vector*y])
     y = np.column_stack([y])
 
-    model_name = "production_rnn"
+    model_name = "producion_rnn"
     path_to_model = os.path.join(FDIR, model_name)
-    predict_fn = tf.contrib.predictor.from_saved_model(path_to_model)
-    predict = predict_fn({"x":[x]})["predictions"]
-    
+    loaded_model = tf.saved_model.load(path_to_model)
+
+    predict = loaded_model(x)
+
     rain = np.concatenate((x[:num_rain_updates,0], np.zeros(x.shape[0] - num_rain_updates) * np.nan))
     forecast = np.concatenate((np.zeros(num_rain_updates) * np.nan, x[num_rain_updates:,0]))
     level = y[:,0]
@@ -157,7 +158,7 @@ def rnn_model(testing_mode, testing_timestamp):
     logger.info("OUTPUT TEXT: " + text)
 
     output_df.timestamp = [timestamp.value / 1000 for timestamp in output_df.timestamp.tolist()]
-    values = output_df.T.to_dict().values()
+    values = list(output_df.T.to_dict().values())
 
     output = {}       
     output['current_time'] = current_time.value / 1000
@@ -190,4 +191,3 @@ def run(testing_mode=False):
 
 if __name__ == "__main__":
     run(testing_mode=True)
-
