@@ -13,7 +13,7 @@ def main(timing, testing):
 		scraping.update_forecast_rainfall(testing)
 		scraping.rain(testing)
 		scraping.level(testing)
-		scraping.get_radar_images(testing)
+		scraping.upload_radar_images_s3()
 		modelLib.run(testing)
 
 	elif timing == "half":

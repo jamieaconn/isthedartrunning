@@ -5,6 +5,7 @@ import calendar
 from io import BytesIO
 import os
 import imageio
+import s3_functions
 
 from local_info import metoffice_key
 
@@ -48,10 +49,8 @@ def get_radar_image(timestamp):
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print(err)
-
-    with open(os.path.join(img_dirs["radar_img_dir"], timestamp + '.png'), "wb") as ff:
-        ff.write(r.content)
     return imageio.imread(BytesIO(r.content))
+
 
 def get_forecast_radar_times():
     print("Requesting forecast radar times")
