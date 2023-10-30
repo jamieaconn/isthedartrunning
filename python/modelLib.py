@@ -1,13 +1,11 @@
-import math
 import time
 import json
 import pandas as pd
 import os
 import numpy as np
 import sqlite3
-import boto3
 import tensorflow as tf
-
+import s3_functions
 from logfuncts import logger
 
 FDIR = os.path.abspath(os.path.dirname(__file__))
@@ -168,26 +166,13 @@ def rnn_model(testing_mode, testing_timestamp):
     output['broken'] = False
     return output
 
-def upload_export_s3():
-    from local_info import aws_access_key_id, aws_secret_access_key, region_name, bucket_name
-    session = boto3.Session(
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key,
-        region_name=region_name
-    )
-    s3 = session.resource('s3')
-    bucket = s3.Bucket(bucket_name)
-    with open(os.path.join(OUTPUT_PATH)) as data:
-        bucket.put_object(Key=OUTPUT_FILENAME, Body=data, ContentType="text/json")
-
-
 def run(testing_mode=False):
     testing_timestamp = "2019-04-05 11:30:00" 
     output = rnn_model(testing_mode, testing_timestamp)    
     with open(OUTPUT_PATH, 'w') as f:
       json.dump(output, f, indent=4)
     if not testing_mode:
-        upload_export_s3()
+        s3_functions.upload_json_s3()
 
 if __name__ == "__main__":
     run(testing_mode=True)
