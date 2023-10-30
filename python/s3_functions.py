@@ -41,7 +41,6 @@ def list_radar_images_in_s3():
 
 def flatten_and_upload_all_radar_images_s3():
     start = time.time()
-
     filenames = os.listdir('../image/radar')
     existing_image_filenames = list_radar_images_in_s3()
 
@@ -88,7 +87,7 @@ def upload_static_files(bucket=bucket, path='../html', ignore_images=True):
                 else:
                     bucket.put_object(Key=full_path[len(path)+1:], Body=data)
  
-def upload_static_files(bucket=bucket, ignore_images=False):
+def delete_static_files(bucket=bucket, ignore_images=False):
     keys = bucket.objects.all()
     for key in keys:
         print(key)
