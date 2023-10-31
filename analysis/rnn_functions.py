@@ -10,11 +10,11 @@ module_path = os.path.abspath(os.path.join('../python'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-import modelLib
+import sql_functions
 from logfuncts import logger
 
 def load_data(start_date="2016-08-01 00:00:00", end_date = "2019-01-01 00:00:00"):
-    df = modelLib.load_dataframe_from_sql("dart", limit=-1)
+    df = sql_functions.load_dataframe_from_sql("dart", limit=-1)
     
     # Fill in missing timestamps by reindexing
     min_time = min(df.index)
@@ -96,24 +96,3 @@ def plot_sample(X, Y, pred, parameters, index=None):
     plt.legend(loc='upper right')
     plt.ylim(0, 2)
     plt.savefig('plot.png')
-
-# original bucket model
-def bucket_predict(inputs, num_level_updates):
-    X = inputs["x"]
-    pred = []
-    for i in range(X.shape[0]):
-        x = X[i,:,:]
-        p = x[:, 2]
-        starting_level = x[num_level_updates-1,2]
-        # this fixes the math domain error that occurs for levels below modelLib.scale_a parameter
-        if starting_level < modelLib.scale_a:
-            starting_level = 0.265
-        storage=modelLib.f_inv(modelLib.g_inv(starting_level))
-    
-        for j in range(x.shape[0]-num_level_updates):
-            rain = x[j+num_level_updates,0]
-            predict = modelLib.g(modelLib.f(storage))
-            storage = storage + rain - modelLib.f(storage)
-            p[j+num_level_updates] = predict
-        pred.append(p)
-    return np.array(pred)

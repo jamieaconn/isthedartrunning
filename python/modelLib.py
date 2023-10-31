@@ -3,13 +3,12 @@ import json
 import pandas as pd
 import os
 import numpy as np
-import sqlite3
 import tensorflow as tf
 import s3_functions
 from logfuncts import logger
+import sql_functions
 
 FDIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE_PATH = os.path.join(FDIR, '../data.db')
 RIVER_NAME = "dart"
 OUTPUT_FILENAME = RIVER_NAME + ".json"
 OUTPUT_PATH = os.path.join(FDIR, '../html', OUTPUT_FILENAME)
@@ -17,36 +16,10 @@ OUTPUT_PATH = os.path.join(FDIR, '../html', OUTPUT_FILENAME)
 MIMIMUM_THRESHOLD = 0.7
 MAXIMUM_THRESHOLD = 1.5
 
-def load_dataframe_from_sql(river, limit=-1):
-    """Load data from the database and return a pandas dataframe. 
-    Limit param specifies number of rows returned. Default is to return all"""
-    if limit > 0:
-        logger.info("loading df for river {river} from sql with row limit of {limit}".format(river=river, limit=limit))
-    else:
-        logger.info("loading entire df for river {river} from sql".format(river=river))
-    con = sqlite3.connect(DATABASE_PATH)
-    cur = con.cursor()
-    query = """
-            SELECT timestamp, rain, level, forecast 
-                from {river}
-            ORDER BY timestamp DESC
-            LIMIT {limit}
-        """
-    cur.execute(query.format(river=river, limit=limit))
-    result = cur.fetchall()
-
-    df = pd.DataFrame(result, columns=['timestamp', 'cum_rain', 'level', 'forecast'])
-    # # Set index to timestamp column as object
-    df.timestamp = pd.to_datetime(df.timestamp)
-    df = df.set_index('timestamp')
-    df = df.sort_index()
-
-    return df
-
 def rnn_model(testing_mode, testing_timestamp):
     if testing_mode:
         current_time = pd.to_datetime(testing_timestamp)
-        df = load_dataframe_from_sql(river=RIVER_NAME, limit=-1)
+        df = sql_functions.load_dataframe_from_sql(river=RIVER_NAME, limit=-1)
         df = df[df.index > current_time - pd.Timedelta('2days')]
         df = df[df.index < current_time + pd.Timedelta('1days')]
         df.loc[(df.index > current_time - pd.Timedelta('1days')), "level"] = None
@@ -55,7 +28,7 @@ def rnn_model(testing_mode, testing_timestamp):
     else:
         current_time = time.time()
         current_time = pd.to_datetime(current_time - (current_time % (15*60)), unit='s')
-        df = load_dataframe_from_sql(river=RIVER_NAME, limit=130)
+        df = sql_functions.load_dataframe_from_sql(river=RIVER_NAME, limit=130)
     logger.info("current_time: {value}".format(value=current_time))
 
 
