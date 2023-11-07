@@ -87,9 +87,8 @@ def rnn_model(testing_mode, testing_timestamp):
     x = np.column_stack([x, update_vector, update_vector*y])
     y = np.column_stack([y])
 
-    model_name = "producion_rnn"
-    path_to_model = os.path.join(FDIR, model_name)
-    loaded_model = tf.saved_model.load(path_to_model)
+    path_to_model = os.path.join(FDIR, "../modelling/model.keras")
+    loaded_model = tf.keras.models.load_model(path_to_model)
 
     predict = loaded_model(x)
 
