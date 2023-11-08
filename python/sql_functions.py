@@ -3,9 +3,10 @@ from logfuncts import logger
 import sqlite3
 import os
 
+
 FDIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE_PATH = os.path.join(FDIR, '../data.db')
-
+print("DATABASE PATH", DATABASE_PATH)
 def load_dataframe_from_sql(river, limit=-1):
     """Load data from the database and return a pandas dataframe. 
     Limit param specifies number of rows returned. Default is to return all"""

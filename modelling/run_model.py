@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 parameters = {
-    "num_steps": 80,
+    "num_steps": 120,
     "batch_size": 500,
     "state_size": 15,
     "learning_rate": 0.1,
@@ -24,7 +24,7 @@ lstm_model = tf.keras.models.Sequential([
 ])
 
 lstm_model.compile(loss=tf.keras.losses.MeanSquaredError(),
-                optimizer=tf.keras.optimizers.legacy.Adam(),
+               optimizer=tf.keras.optimizers.Adam(),
                 metrics=[tf.keras.metrics.MeanAbsoluteError()])
 
 validation_data = (X_test, Y_test)
