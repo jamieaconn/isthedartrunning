@@ -4,16 +4,16 @@ import modelLib
 
 def main(timing, testing):
 	if testing:
-		print "Running model on", timing, "in testing mode"
+		print(("Running model on", timing, "in testing mode"))
 	else:
-		print "Running model on", timing
-	print
+		print(("Running model on", timing))
+	print()
 
 	if timing == "hour": 
 		scraping.update_forecast_rainfall(testing)
 		scraping.rain(testing)
 		scraping.level(testing)
-		scraping.get_radar_images(testing)
+		#scraping.upload_radar_images_s3()
 		modelLib.run(testing)
 
 	elif timing == "half":

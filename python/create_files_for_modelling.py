@@ -66,17 +66,17 @@ for j, chunk in enumerate(chunks):
   filepath = 'modelling_data/train_images_' + str(j) + '.h5'
   uploadpath = 'modelling_data/train_images_' + str(j) + '.h5'
   f = h5py.File(filepath, 'w')
-  print "Training data - Chunk: " + str(j) + "/" + str(num_chunks)
+  print("Training data - Chunk: " + str(j) + "/" + str(num_chunks))
   images = np.array([], dtype=np.uint8).reshape(0, 500, 500)
   for i, filename in enumerate(chunk.image_filenames.values):
     if i % 100 == 0:
-      print i
-      print time.time() - start
+      print(i)
+      print(time.time() - start)
     try:
       image = imageio.imread('../image/radar/' + filename)
       flattened_image = image_processing.flatten_radar_image(image)   
     except:
-      print "failed to read" + filename
+      print("failed to read" + filename)
       flattened_image = np.zeros((500, 500), dtype=np.uint8) 
     images = np.concatenate((images, np.expand_dims(flattened_image, 0)))
 
@@ -97,17 +97,17 @@ for j, chunk in enumerate(chunks):
   filepath = 'modelling_data/test_images_' + str(j) + '.h5'
   uploadpath = 'modelling_data/test_images_' + str(j) + '.h5'
   f = h5py.File(filepath, 'w')
-  print "Test data - Chunk: " + str(j) + "/" + str(num_chunks)
+  print("Test data - Chunk: " + str(j) + "/" + str(num_chunks))
   images = np.array([], dtype=np.uint8).reshape(0, 500, 500)
   for i, filename in enumerate(chunk.image_filenames.values):
     if i % 100 == 0:
-      print i
-      print time.time() - start
+      print(i)
+      print(time.time() - start)
     try:
       image = imageio.imread('../image/radar/' + filename)
       flattened_image = image_processing.flatten_radar_image(image)   
     except:
-      print "failed to read" + filename
+      print("failed to read" + filename)
       flattened_image = np.zeros((500, 500), dtype=np.uint8) 
     images = np.concatenate((images, np.expand_dims(flattened_image, 0)))
 

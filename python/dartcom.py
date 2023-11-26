@@ -1,22 +1,23 @@
-from scipy import misc, sum, average
+from scipy import sum, average
+import imageio
 import requests
 from io import BytesIO
 import os
 
 fdir = os.path.abspath(os.path.dirname(__file__))
 
-zero = misc.imread(os.path.join(fdir, '../ref_images/zero.png'))
-one = misc.imread(os.path.join(fdir, '../ref_images/one.png'))
-two = misc.imread(os.path.join(fdir, '../ref_images/two.png'))
-three = misc.imread(os.path.join(fdir, '../ref_images/three.png'))
-four = misc.imread(os.path.join(fdir, '../ref_images/four.png'))
-five = misc.imread(os.path.join(fdir, '../ref_images/five.png'))
-six = misc.imread(os.path.join(fdir, '../ref_images/six.png'))
-seven = misc.imread(os.path.join(fdir, '../ref_images/seven.png'))
-eight = misc.imread(os.path.join(fdir, '../ref_images/eight.png'))
-nine = misc.imread(os.path.join(fdir, '../ref_images/nine.png'))
-dot = misc.imread(os.path.join(fdir, '../ref_images/dot.png'))
-black = misc.imread(os.path.join(fdir, '../ref_images/black.png'))
+zero = imageio.imread(os.path.join(fdir, '../ref_images/zero.png'))
+one = imageio.imread(os.path.join(fdir, '../ref_images/one.png'))
+two = imageio.imread(os.path.join(fdir, '../ref_images/two.png'))
+three = imageio.imread(os.path.join(fdir, '../ref_images/three.png'))
+four = imageio.imread(os.path.join(fdir, '../ref_images/four.png'))
+five = imageio.imread(os.path.join(fdir, '../ref_images/five.png'))
+six = imageio.imread(os.path.join(fdir, '../ref_images/six.png'))
+seven = imageio.imread(os.path.join(fdir, '../ref_images/seven.png'))
+eight = imageio.imread(os.path.join(fdir, '../ref_images/eight.png'))
+nine = imageio.imread(os.path.join(fdir, '../ref_images/nine.png'))
+dot = imageio.imread(os.path.join(fdir, '../ref_images/dot.png'))
+black = imageio.imread(os.path.join(fdir, '../ref_images/black.png'))
 
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine, dot, black]
 
@@ -64,9 +65,9 @@ def get_rainfall():
         r = requests.get(url)
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
-        print err
+        print(err)
         sys.exit(1)
-    im = misc.imread(BytesIO(r.content))
+    im = imageio.imread(BytesIO(r.content))
     im = to_grayscale(im)
     return float(image_to_value(im, 6))
 

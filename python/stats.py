@@ -50,7 +50,7 @@ current_time = pd.to_datetime(current_time, unit='s')
 if sample_data:
     current_time = pd.to_datetime('2016-11-21 18:30:00') 
 if verbose:
-    print current_time
+    print(current_time)
 
 
 con = lite.connect(database)
@@ -90,11 +90,11 @@ last_up = None
 if len(up_rows) > 0:
     last_up = pd.to_datetime(max(up_rows))
 if verbose:
-    print 'current_time: ' + str(current_time)
+    print('current_time: ' + str(current_time))
 
 if last_up:
     if verbose:
-        print 'last_up: ' + str(last_up)
+        print('last_up: ' + str(last_up))
 
     diff = (current_time - last_up)
 
@@ -107,12 +107,12 @@ if last_up:
             last_up_minutes = diff.value / (60 * 1000 * 1000 * 1000)
             last_up_text = str(last_up_minutes) + ' MINUTES'
     if verbose:
-        print
-        print 'LAST RUNNING ' + last_up_text + ' AGO'
+        print()
+        print('LAST RUNNING ' + last_up_text + ' AGO')
 else:
     last_up_text = "NEVER?!"
     if verbose:
-        print last_up_text
+        print(last_up_text)
 
 
 # In[90]:
@@ -128,8 +128,8 @@ days_up_week = len(df_last_week[df_last_week.level > 0.7])
 max_level_week = df_last_week.level.max().round(2)
 
 if verbose:
-    print 'UP ON ' + str(days_up_week) + ' DAYS IN THE LAST 7 DAYS'
-    print 'HIGHEST LEVEL IN THE LAST 7 DAYS WAS ' + str(max_level_week)
+    print('UP ON ' + str(days_up_week) + ' DAYS IN THE LAST 7 DAYS')
+    print('HIGHEST LEVEL IN THE LAST 7 DAYS WAS ' + str(max_level_week))
 
 # NUMBER OF DAYS THAT DART HAS RUN IN LAST MONTH
 df_last_month = df_days[(current_time - df_days.index) < np.timedelta64(30,'D')]
@@ -137,8 +137,8 @@ days_up_month = len(df_last_month[df_last_month.level > 0.7])
 max_level_month = df_last_month.level.max().round(2)
 
 if verbose:
-    print 'UP ON ' + str(days_up_month) + ' DAYS IN THE LAST 30 DAYS'
-    print 'HIGHEST LEVEL IN THE LAST 30 DAYS WAS ' + str(max_level_month)
+    print('UP ON ' + str(days_up_month) + ' DAYS IN THE LAST 30 DAYS')
+    print('HIGHEST LEVEL IN THE LAST 30 DAYS WAS ' + str(max_level_month))
 
 
 
@@ -156,8 +156,8 @@ sum_rain_month = int(round(sum(df_last_month.cum_rain.fillna(0))))
 
 # SUM OF RAIN IN THE LAST MONTH
 if verbose:
-    print str(sum_rain_week) + ' MM OF RAIN IN THE LAST 7 DAYS'
-    print str(sum_rain_month) + ' MM OF RAIN IN THE LAST 30 DAYS'
+    print(str(sum_rain_week) + ' MM OF RAIN IN THE LAST 7 DAYS')
+    print(str(sum_rain_month) + ' MM OF RAIN IN THE LAST 30 DAYS')
 
 
 # In[94]:

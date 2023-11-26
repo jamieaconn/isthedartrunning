@@ -1,16 +1,12 @@
-import datetime
 import numpy as np
-import math
 import calendar
-import csv
 from time import gmtime, strftime, strptime
-import shutil
 import requests
-import json
-import ftplib
 import sqlite3
 import os
-
+import s3_functions
+import image_processing
+import imageio
 # local modules
 import dartcom
 import scrapeRadar
@@ -129,7 +125,7 @@ def level(testing):
     url = 'http://environment.data.gov.uk/flood-monitoring/id/stations/46126/readings?startdate=' + start_date + '&enddate=' + end_date + '&_sorted'
     r = requests.get(url)
     if(r.status_code != 200):
-        print "level json request failed"
+        print("level json request failed")
         return 0
     else:
         con = sqlite3.connect(database)
@@ -155,10 +151,13 @@ def rain(testing):
     #Update database with newest rain value
     update_sql_rain(timestamp, rain)
 
-
-
-def get_radar_images(testing):
+def upload_radar_images_s3():
+    filenames_s3 = s3_functions.list_radar_images_in_s3()
     timestamps = scrapeRadar.get_radar_times()
-    for timestamp in timestamps:
-        scrapeRadar.get_radar_image(timestamp)
-
+    timestamps_new = [t for t in timestamps if t + '.png' not in filenames_s3]
+    
+    for timestamp in timestamps_new:
+        image = scrapeRadar.get_radar_image(timestamp)
+        flattened_image = image_processing.flatten_radar_image(image)
+        imageio.imwrite('temp.png', flattened_image)
+        s3_functions.upload_to_s3('temp.png', 'images/'+timestamp+".png")

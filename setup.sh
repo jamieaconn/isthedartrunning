@@ -48,4 +48,5 @@ python2 python/setup.py
 
 deactivate
 
-
+# set up crontab
+crontab crontab.txt
