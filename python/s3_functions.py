@@ -97,5 +97,5 @@ def delete_static_files(bucket, ignore_images=False):
 
 
 def upload_json_s3():
-    with open(os.path.join(OUTPUT_PATH)) as data:
+    with open(os.path.join(OUTPUT_PATH), 'rb') as data:
         s3.put_object(Bucket=bucket_name, Key=OUTPUT_FILENAME, Body=data, ContentType="text/json")
