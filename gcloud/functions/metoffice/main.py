@@ -17,7 +17,7 @@ from google.cloud import storage
 #secret = os.environ.get('metofficeSecret')
 #orderName = os.environ.get('metofficeOrderName')
 
-baseUrl = "https://api-metoffice.apiconnect.ibmcloud.com/metoffice/production/map-images/1.0.0"
+baseUrl = "https://api-metoffice.apiconnect.ibmcloud.com/1.0.0"
 
 requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret, "Accept": "application/json"}
 
@@ -33,21 +33,20 @@ def get_latest_runtime():
 bucket_name = 'metoffice_forecast_images'
 
 def upload_files(latestRunDateTime):
-    url = baseUrl + "/orders/" + orderName + "/latest"
-    req = requests.get(url, headers=requestHeaders)
+    requrl = baseUrl + "/orders/{orderId}/latest".format(orderId=orderName)
+    req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
+
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
-    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 35)]
+    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 38)]
 
     for fileId in fileIds:
-        url = baseUrl + "/orders/" + orderName + "/latest/" + fileId + "/data"
-        #url = url + "?includeLand=true"
-        req = requests.get(url, headers=requestHeaders)
-        image_data = req.content
-        image_file = BytesIO(image_data)
-        image = Image.open(image_file)
-        array = np.array(image) 
-        (time, run) = fileId[27:].split("_+")
+        requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=fileId)
+        requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret}
+
+        response = requests.get(requrl, headers=requestHeaders)
+
+        (run, time) = fileId[33:].split("_")
         # Convert timestamp string to datetime object
         timestamp = datetime.strptime(latestRunDateTime, '%Y-%m-%dT%H:%M:%SZ')
         # Add hours to the datetime object
@@ -55,9 +54,8 @@ def upload_files(latestRunDateTime):
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(latestRunDateTime + "_" + time)
-
-        blob.upload_from_string(image_data, content_type='image/png')
+        blob = bucket.blob(latestRunDateTime + "_" + time + ".grib")
+        blob.upload_from_string(response.content)
         print('Wrote', fileId)
 
 
