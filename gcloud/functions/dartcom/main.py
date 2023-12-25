@@ -1,26 +1,24 @@
-from scipy import sum, average
 import imageio
+import datetime
 import requests
 from io import BytesIO
-import os
+import numpy
+from google.cloud import firestore
 
-fdir = os.path.abspath(os.path.dirname(__file__))
-
-zero = imageio.imread(os.path.join(fdir, '../ref_images/zero.png'))
-one = imageio.imread(os.path.join(fdir, '../ref_images/one.png'))
-two = imageio.imread(os.path.join(fdir, '../ref_images/two.png'))
-three = imageio.imread(os.path.join(fdir, '../ref_images/three.png'))
-four = imageio.imread(os.path.join(fdir, '../ref_images/four.png'))
-five = imageio.imread(os.path.join(fdir, '../ref_images/five.png'))
-six = imageio.imread(os.path.join(fdir, '../ref_images/six.png'))
-seven = imageio.imread(os.path.join(fdir, '../ref_images/seven.png'))
-eight = imageio.imread(os.path.join(fdir, '../ref_images/eight.png'))
-nine = imageio.imread(os.path.join(fdir, '../ref_images/nine.png'))
-dot = imageio.imread(os.path.join(fdir, '../ref_images/dot.png'))
-black = imageio.imread(os.path.join(fdir, '../ref_images/black.png'))
+zero = imageio.imread('ref_images/zero.png')
+one = imageio.imread('ref_images/one.png')
+two = imageio.imread('ref_images/two.png')
+three = imageio.imread('ref_images/three.png')
+four = imageio.imread('ref_images/four.png')
+five = imageio.imread('ref_images/five.png')
+six = imageio.imread('ref_images/six.png')
+seven = imageio.imread('ref_images/seven.png')
+eight = imageio.imread('ref_images/eight.png')
+nine = imageio.imread('ref_images/nine.png')
+dot = imageio.imread('ref_images/dot.png')
+black = imageio.imread('ref_images/black.png')
 
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine, dot, black]
-
 
 def return_digit(image, dig):
     n = 4 + dig * 12
@@ -28,13 +26,13 @@ def return_digit(image, dig):
 
 def to_grayscale(arr):
     if len(arr.shape) == 3:
-        return average(arr, -1)
+        return numpy.average(arr, -1)
     else:   
         return arr
 
 def match_digit(arr1, arr2):
     diff = arr2 - arr1
-    return sum(abs(diff))
+    return numpy.sum(abs(diff))
 
 # Returns the position of the best match out of the possible images definited in numbers
 def digit_to_value(arr):
@@ -66,9 +64,16 @@ def get_rainfall():
         r.raise_for_status()
     except requests.exceptions.HTTPError as err:
         print(err)
-        sys.exit(1)
     im = imageio.imread(BytesIO(r.content))
     im = to_grayscale(im)
     return float(image_to_value(im, 6))
 
-
+def update_rainfall(request):
+    timestamp = datetime.datetime.now().isoformat()
+    rainfall = get_rainfall()
+    db = firestore.Client()
+    doc_ref = db.collection('rainfall_data').document(timestamp)
+    doc_ref.set({
+    'rainfall': rainfall
+    })
+    return("Complete")
