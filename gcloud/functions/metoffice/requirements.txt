@@ -3,3 +3,4 @@ datetime
 numpy
 Pillow
 google-cloud-storage
+google-cloud-firestore

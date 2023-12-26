@@ -69,11 +69,13 @@ def get_rainfall():
     return float(image_to_value(im, 6))
 
 def update_rainfall(request):
-    timestamp = datetime.datetime.now().isoformat()
+    timestamp = datetime.datetime.now()
+    timestamp_string = datetime.datetime.strftime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
     rainfall = get_rainfall()
     db = firestore.Client()
-    doc_ref = db.collection('rainfall_data').document(timestamp)
+    doc_ref = db.collection('rainfall_data').document(timestamp_string)
     doc_ref.set({
-    'rainfall': rainfall
+        'timestamp': timestamp,
+        'rainfall': rainfall
     })
     return("Complete")

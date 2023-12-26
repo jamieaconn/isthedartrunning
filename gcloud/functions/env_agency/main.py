@@ -14,6 +14,7 @@ def update_level(request):
     for i in r.json()['items']:
         doc_ref = db.collection('level_data').document(i['dateTime'])
         doc_ref.set({
-        'level': i['value']
+            'level': i['value'],
+            'timestamp': datetime.datetime.strptime(i['dateTime'], '%Y-%m-%dT%H:%M:%SZ')
         })
     return('Complete')
