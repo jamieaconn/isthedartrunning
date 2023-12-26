@@ -1,10 +1,8 @@
 import requests 
-from io import BytesIO
-from PIL import Image
 from datetime import datetime, timedelta
-import numpy as np
-import os
 from tokens import clientId, secret, orderName
+import pygrib
+import numpy as np
 
 from google.cloud import storage
 from google.cloud import firestore
@@ -39,11 +37,26 @@ def upload_files(latestRunDateTime):
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
     fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 38)]
 
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret}
+
     for fileId in fileIds:
         requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=fileId)
-        requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret}
-
         response = requests.get(requrl, headers=requestHeaders)
+
+        grb = pygrib.fromstring(response.content)
+        data = grb.values
+        data = data * 3600 # convert units to mm/h
+        lat, lon = grb.latlons()
+        lat_range = [50.54028093201509, 50.61029020017267]
+        lon_range = [-3.978019229686611, -3.8768901858773095]
+
+        # create a mask with True values only within the lat and lon ranges
+        mask = (lat > lat_range[0]) & (lat < lat_range[1]) & (lon > lon_range[0]) & (lon < lon_range[1])
+
+        # apply the max and take a mean to get average rainfall rate in the catchment
+        forecast_rainfall = np.sum(data * mask)/np.sum(mask)
 
         (run, time) = fileId[33:].split("_")
         # Convert timestamp string to datetime object
@@ -51,18 +64,23 @@ def upload_files(latestRunDateTime):
         # Add hours to the datetime object
         timestamp += timedelta(hours=int(time))
 
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(bucket_name)
+        timestamp_string = datetime.strftime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
+
+        #upload file
         filename = latestRunDateTime + "_" + time + ".grib"
         blob = bucket.blob(filename)
         blob.upload_from_string(response.content)
-        doc_ref = db.collection('metoffice_grib_files').document(datetime.strftime(timestamp, '%Y-%m-%dT%H:%M:%SZ'))
+
+        #write to firestore
+        doc_ref = db.collection('forecast_data').document(timestamp_string)
         doc_ref.set({
             'filename': filename,
             'timestamp': timestamp,
             'run': run,
-            'time': time
+            'time': time,
+            'forecast_rainfall': forecast_rainfall
         })
+
         print('Wrote', fileId)
 
 def upload_latest_run_files(request):

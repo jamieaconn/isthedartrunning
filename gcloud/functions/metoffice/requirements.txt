@@ -1,6 +1,6 @@
 requests
 datetime
 numpy
-Pillow
+pygrib
 google-cloud-storage
 google-cloud-firestore
