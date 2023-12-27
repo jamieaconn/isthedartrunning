@@ -10,18 +10,28 @@ deploy_function() {
         local SCHEDULE="30 * * * *"
         local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/metoffice"
         local TIMEOUT=300
+        local MEMORY=256M
     
     elif [ "${SCHEDULED_JOB_NAME}" == "dartcom" ]; then
         local FUNCTION_NAME="update_rainfall"
         local SCHEDULE="*/5 * * * *"
         local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/dartcom"
         local TIMEOUT=60
+        local MEMORY=256M
 
     elif [ "${SCHEDULED_JOB_NAME}" == "env_agency" ]; then
         local FUNCTION_NAME="update_level"
         local SCHEDULE="*/5 * * * *"
         local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/env_agency"
-        local TIMEOUT="60"
+        local TIMEOUT=60
+        local MEMORY=256M
+
+     elif [ "${SCHEDULED_JOB_NAME}" == "model" ]; then
+        local FUNCTION_NAME="run_model"
+        local SCHEDULE="0,15,30,45 * * * *"
+        local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/model"
+        local TIMEOUT=240
+        local MEMORY=2048
     else
         return
     fi
@@ -33,7 +43,8 @@ deploy_function() {
         --trigger-http \
         --allow-unauthenticated \
         --timeout "${TIMEOUT}" \
-        --source "${SOURCE}"
+        --source "${SOURCE}" \
+        --memory "${MEMORY}"
 
     # Check if the scheduled job exists
     EXISTING_JOB=$(gcloud scheduler jobs describe "${SCHEDULED_JOB_NAME}" --format="value(name)" 2>/dev/null)
