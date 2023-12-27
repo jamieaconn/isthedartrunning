@@ -35,7 +35,7 @@ def upload_files(latestRunDateTime):
     r = req.json()
 
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
-    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 38)]
+    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 39)]
 
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
