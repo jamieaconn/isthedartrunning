@@ -3,48 +3,26 @@
 REGION="europe-west2"
 PROJECT_ID="even-autonomy-239218"
 
-deploy_function() {
+deploy_job() {
     local SCHEDULED_JOB_NAME="$1"
     if [ "${SCHEDULED_JOB_NAME}" == "metoffice" ]; then
         local FUNCTION_NAME="upload_latest_run_files"
         local SCHEDULE="30 * * * *"
-        local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/metoffice"
-        local TIMEOUT=300
-        local MEMORY=256M
     
     elif [ "${SCHEDULED_JOB_NAME}" == "dartcom" ]; then
         local FUNCTION_NAME="update_rainfall"
         local SCHEDULE="*/5 * * * *"
-        local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/dartcom"
-        local TIMEOUT=60
-        local MEMORY=256M
 
     elif [ "${SCHEDULED_JOB_NAME}" == "env_agency" ]; then
         local FUNCTION_NAME="update_level"
         local SCHEDULE="*/5 * * * *"
-        local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/env_agency"
-        local TIMEOUT=60
-        local MEMORY=256M
 
      elif [ "${SCHEDULED_JOB_NAME}" == "model" ]; then
         local FUNCTION_NAME="run_model"
         local SCHEDULE="0,15,30,45 * * * *"
-        local SOURCE="/Users/jamieconn/isthedartrunning/gcloud/functions/model"
-        local TIMEOUT=240
-        local MEMORY=2048
     else
         return
     fi
-    
-    # Deploy the Cloud Function
-    gcloud functions deploy "${FUNCTION_NAME}" \
-        --runtime python39 \
-        --region "${REGION}" \
-        --trigger-http \
-        --allow-unauthenticated \
-        --timeout "${TIMEOUT}" \
-        --source "${SOURCE}" \
-        --memory "${MEMORY}"
 
     # Check if the scheduled job exists
     EXISTING_JOB=$(gcloud scheduler jobs describe "${SCHEDULED_JOB_NAME}" --format="value(name)" 2>/dev/null)
@@ -68,9 +46,9 @@ deploy_function() {
 }
 
 if [ "$1" == "all" ]; then
-    deploy_function "metoffice"
-    deploy_function "env_agency"
-    deploy_function "dartcom"
+    deploy_job "metoffice"
+    deploy_job "env_agency"
+    deploy_job "dartcom"
 else
-    deploy_function "$1"
+    deploy_job "$1"
 fi
