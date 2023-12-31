@@ -1,0 +1,5 @@
+google-cloud-storage
+google-cloud-firestore
+datetime
+pandas
+tensorflow-cpu==2.14.0

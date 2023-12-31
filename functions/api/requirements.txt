@@ -1,0 +1,3 @@
+google-cloud-firestore
+flask==2.3.3
+functions_framework

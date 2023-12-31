@@ -1,5 +1,0 @@
-boto3==1.28.73
-pandas==1.16.0
-scipy==1.11.3
-tensorflow==2.14.0
-imageio==1.26.1
