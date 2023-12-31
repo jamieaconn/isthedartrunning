@@ -2,5 +2,4 @@ requests
 datetime
 numpy
 pygrib
-google-cloud-storage
 google-cloud-firestore

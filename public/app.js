@@ -1,20 +1,23 @@
-google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(drawChart);
+google.charts.load('current', {'packages':['corechart']});
+// Set a callback function to be executed when the API has loaded
+google.charts.setOnLoadCallback(drawChart);
+window.dataLayer = window.dataLayer || [];
 
 function drawChart() {
     var jsonData = $.ajax({
-        url: "dart.json",
+        url: "https://europe-west2-even-autonomy-239218.cloudfunctions.net/fetch_data",
         dataType: "json",
         async: false
     }).done(function (results) {
-        updated_date = new Date(results.current_time / 1000);
-        document.querySelector('#updated').innerHTML = "Latest model run:   " + updated_date.toLocaleDateString() + " " + updated_date.toLocaleTimeString();
-        text = results.text;
-        broken = results.broken;
+        updated_date = new Date(results.data.current_time*1000);
+        minutes_since_updated = (Date.now() - (results.data.current_time*1000))/(1000*60)
+        console.log(minutes_since_updated)
+        document.querySelector('#updated').innerHTML = "Updated at:   " + updated_date.toLocaleDateString() + " " + updated_date.toLocaleTimeString();
+        text = results.data.text;
 
-        if (broken) {
-          document.querySelector('#errormain').innerHTML = "Not sure...";
-          document.querySelector('#errorminor').innerHTML = "Isthedartrunning isn't working properly";
+        if (minutes_since_updated > 120) { // if it's not updated in the last 2 hours
+          document.querySelector('#errormain').innerHTML = "NOT SURE";
+          document.querySelector('#errorminor').innerHTML = "Something is broken...";
         } else {
         
             if (text.length < 5){
@@ -23,6 +26,9 @@ function drawChart() {
               document.querySelector('#message').innerHTML = text;
             }
 
+            // sort the graph data by timestamp
+            results.data.values.sort((a, b) => a.timestamp - b.timestamp);
+
             var data = new google.visualization.DataTable();
             data.addColumn('datetime', 'Time');
             data.addColumn('number', 'Rain');
@@ -30,7 +36,7 @@ function drawChart() {
             data.addColumn('number', 'Level');
             data.addColumn('number', 'Prediction');
 
-            $.each(results.values, function (i, row) {
+            $.each(results.data.values, function (i, row) {
                 data.addRow([
                     (new Date(row.timestamp / 1000)), 
                     parseFloat(row.rain),

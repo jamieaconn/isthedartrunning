@@ -1,7 +1,0 @@
-0 * * * * ~/production/isthedartrunning/ENV/bin/python ~/production/isthedartrunning/python/run.py hour
-
-15 * * * * ~/production/isthedartrunning/ENV/bin/python ~/production/isthedartrunning/python/run.py quarter
-
-30 * * * * ~/production/isthedartrunning/ENV/bin/python ~/production/isthedartrunning/python/run.py half
-
-45 * * * * ~/production/isthedartrunning/ENV/bin/python ~/production/isthedartrunning/python/run.py quarter
