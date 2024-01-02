@@ -51,8 +51,8 @@ def upload_files(latestRunDateTime):
             continue
 
         hours_away = (timestamp-datetime.now()).total_seconds() / 3600
-        # we use a maximum of 30 hours of forecast data
-        if(hours_away > 30):
+        # we use a maximum of 40 hours of forecast data
+        if(hours_away > 40):
             continue
 
         requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=fileId)
@@ -88,6 +88,6 @@ def upload_files(latestRunDateTime):
         print(run, time, forecast_rainfall)
 
 def upload_latest_run_files(request):
-    latestRunDateTime = get_latest_runtime()
+    latestRunDateTime = '2024-01-02T06:00:00Z'
     upload_files(latestRunDateTime)
     return('complete')
