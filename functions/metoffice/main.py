@@ -88,6 +88,6 @@ def upload_files(latestRunDateTime):
         print(run, time, forecast_rainfall)
 
 def upload_latest_run_files(request):
-    latestRunDateTime = '2024-01-02T06:00:00Z'
+    latestRunDateTime = get_latest_runtime()
     upload_files(latestRunDateTime)
     return('complete')
