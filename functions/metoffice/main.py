@@ -18,13 +18,16 @@ from google.cloud import firestore
 baseUrl = "https://api-metoffice.apiconnect.ibmcloud.com/1.0.0"
 bucket_name = 'metoffice_forecast_images'
 
-def get_latest_runtime():
+def get_runtimes():
     requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret, "Accept": "application/json"}
     requrl = baseUrl + "/runs?sort=RUNDATETIME"
     req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
-    latestRunDateTime = max([run['runDateTime'] for run in r['runs'][0]['completeRuns']])
-    return(latestRunDateTime)
+    runDateTimes = [run['runDateTime'] for run in r['runs'][0]['completeRuns']]
+    latestRunDateTime =  max(runDateTimes)
+    latestFullRunDateTime = max([run for run in runDateTimes if datetime.strptime(run, '%Y-%m-%dT%H:%M:%SZ').hour in [0,12]])
+    runtimes = list(set([latestFullRunDateTime, latestRunDateTime]))
+    return(runtimes)
 
 def upload_files(latestRunDateTime):
     db = firestore.Client()
@@ -34,7 +37,7 @@ def upload_files(latestRunDateTime):
     r = req.json()
 
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
-    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 39)]
+    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 60)]
 
     
     requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret}
@@ -88,6 +91,7 @@ def upload_files(latestRunDateTime):
         print(run, time, forecast_rainfall)
 
 def upload_latest_run_files(request):
-    latestRunDateTime = get_latest_runtime()
-    upload_files(latestRunDateTime)
+    runtimes = get_runtimes()
+    for run in runtimes:
+        upload_files(run)
     return('complete')
