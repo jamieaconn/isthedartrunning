@@ -65,8 +65,6 @@ def upload_files(latestRunDateTime):
         data = grb.values
         data = data * 3600 # convert units to mm/h
         lat, lon = grb.latlons()
-        # for some reason the lon values are 360 deg out?
-        lon = lon - 360
 
         lat_range = [50.54028093201509, 50.61029020017267]
         lon_range = [-3.978019229686611, -3.8768901858773095]
