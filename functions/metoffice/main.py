@@ -1,6 +1,6 @@
 import requests 
 from datetime import datetime, timedelta
-from tokens import clientId, secret, orderName
+from tokens import apiKey, orderName
 import pygrib
 import numpy as np
 
@@ -15,29 +15,32 @@ from google.cloud import firestore
 #secret = os.environ.get('metofficeSecret')
 #orderName = os.environ.get('metofficeOrderName')
 
-baseUrl = "https://api-metoffice.apiconnect.ibmcloud.com/1.0.0"
+baseUrl = "https://data.hub.api.metoffice.gov.uk/atmospheric-models/1.0.0"
 bucket_name = 'metoffice_forecast_images'
 
-def get_latest_runtime():
-    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret, "Accept": "application/json"}
+def get_runtimes():
+    requestHeaders = {"apiKey": apiKey, "Accept": "application/json"}
     requrl = baseUrl + "/runs?sort=RUNDATETIME"
     req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
-    latestRunDateTime = max([run['runDateTime'] for run in r['runs'][0]['completeRuns']])
-    return(latestRunDateTime)
+    runDateTimes = [run['runDateTime'] for run in r['runs'][0]['completeRuns']]
+    latestRunDateTime =  max(runDateTimes)
+    latestFullRunDateTime = max([run for run in runDateTimes if datetime.strptime(run, '%Y-%m-%dT%H:%M:%SZ').hour in [0,12]])
+    runtimes = list(set([latestFullRunDateTime, latestRunDateTime]))
+    return(runtimes)
 
 def upload_files(latestRunDateTime):
     db = firestore.Client()
     requrl = baseUrl + "/orders/{orderId}/latest".format(orderId=orderName)
-    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret, "Accept": "application/json"}
+    requestHeaders = {"apiKey": apiKey, "Accept": "application/json"}
     req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
 
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
-    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 39)]
+    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) > 40)]
 
     
-    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret}
+    requestHeaders = {"apiKey": apiKey}
 
     for fileId in fileIds:
         (run, time) = fileId[33:].split("_")
@@ -51,8 +54,8 @@ def upload_files(latestRunDateTime):
             continue
 
         hours_away = (timestamp-datetime.now()).total_seconds() / 3600
-        # we use a maximum of 30 hours of forecast data
-        if(hours_away > 30):
+        # we use a maximum of 40 hours of forecast data
+        if(hours_away > 40):
             continue
 
         requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=fileId)
@@ -62,8 +65,6 @@ def upload_files(latestRunDateTime):
         data = grb.values
         data = data * 3600 # convert units to mm/h
         lat, lon = grb.latlons()
-        # for some reason the lon values are 360 deg out?
-        lon = lon - 360
 
         lat_range = [50.54028093201509, 50.61029020017267]
         lon_range = [-3.978019229686611, -3.8768901858773095]
@@ -88,6 +89,7 @@ def upload_files(latestRunDateTime):
         print(run, time, forecast_rainfall)
 
 def upload_latest_run_files(request):
-    latestRunDateTime = get_latest_runtime()
-    upload_files(latestRunDateTime)
+    runtimes = get_runtimes()
+    for run in runtimes:
+        upload_files(run)
     return('complete')

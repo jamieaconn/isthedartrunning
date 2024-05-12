@@ -3,6 +3,7 @@
 # 3. run model
 # 4. output results to file
 
+import logging
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -61,7 +62,7 @@ def load_data(start_datetime, end_datetime):
     return df
 
 
-def run_model(requests):
+def model():
     model_parameters = {
         "num_level_updates": 40,
         "num_steps": 120,
@@ -190,3 +191,11 @@ def run_model(requests):
         }
     )
     return('Complete')
+
+
+def run_model(requests):
+    try:
+        model()
+    except Exception as e:
+        logging.error(f"An error occurred: {str(e)}")
+    return("Complete")
