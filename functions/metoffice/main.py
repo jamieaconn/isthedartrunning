@@ -1,6 +1,6 @@
 import requests 
 from datetime import datetime, timedelta
-from tokens import clientId, secret, orderName
+from tokens import apiKey, orderName
 import pygrib
 import numpy as np
 
@@ -15,11 +15,11 @@ from google.cloud import firestore
 #secret = os.environ.get('metofficeSecret')
 #orderName = os.environ.get('metofficeOrderName')
 
-baseUrl = "https://api-metoffice.apiconnect.ibmcloud.com/1.0.0"
+baseUrl = "https://data.hub.api.metoffice.gov.uk/atmospheric-models/1.0.0"
 bucket_name = 'metoffice_forecast_images'
 
 def get_runtimes():
-    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret, "Accept": "application/json"}
+    requestHeaders = {"apiKey": apiKey, "Accept": "application/json"}
     requrl = baseUrl + "/runs?sort=RUNDATETIME"
     req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
@@ -32,7 +32,7 @@ def get_runtimes():
 def upload_files(latestRunDateTime):
     db = firestore.Client()
     requrl = baseUrl + "/orders/{orderId}/latest".format(orderId=orderName)
-    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret, "Accept": "application/json"}
+    requestHeaders = {"apiKey": apiKey, "Accept": "application/json"}
     req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
 
@@ -40,7 +40,7 @@ def upload_files(latestRunDateTime):
     fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 60)]
 
     
-    requestHeaders = {"x-ibm-client-id": clientId, "x-ibm-client-secret": secret}
+    requestHeaders = {"apiKey": apiKey}
 
     for fileId in fileIds:
         (run, time) = fileId[33:].split("_")
