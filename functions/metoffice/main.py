@@ -37,7 +37,7 @@ def upload_files(latestRunDateTime):
     r = req.json()
 
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
-    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) < 60)]
+    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) > 40)]
 
     
     requestHeaders = {"apiKey": apiKey}
