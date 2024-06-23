@@ -6,17 +6,10 @@ import numpy as np
 
 from google.cloud import firestore
 
-# FileIds are in the format: total_precipitation_rate_ts3_+00 or total_precipitation_rate_ts26_+12
-# ts3_00 means it's the forecast image for 3 hours after the midnight run
-# There are also fileIds in the format: total_precipitation_rate_ts0_2023121800 which seem to be duplicates?
-# General approach is to find out the latest run and then get all of the images for that run
-
-#clientId = os.environ.get('metofficeClientId')
-#secret = os.environ.get('metofficeSecret')
-#orderName = os.environ.get('metofficeOrderName')
-
 baseUrl = "https://data.hub.api.metoffice.gov.uk/atmospheric-models/1.0.0"
 bucket_name = 'metoffice_forecast_images'
+
+db = firestore.Client()
 
 def get_runtimes():
     requestHeaders = {"apiKey": apiKey, "Accept": "application/json"}
@@ -29,67 +22,90 @@ def get_runtimes():
     runtimes = list(set([latestFullRunDateTime, latestRunDateTime]))
     return(runtimes)
 
-def upload_files(latestRunDateTime):
-    db = firestore.Client()
+
+def calculate_rainfall(data):
+    grb = pygrib.fromstring(data)
+    data = grb.values
+    data = data * 3600 # convert units to mm/h
+    lat, lon = grb.latlons()
+
+    lat_range = [50.54028093201509, 50.61029020017267]
+    lon_range = [-3.978019229686611, -3.8768901858773095]
+
+    # create a mask with True values only within the lat and lon ranges
+    mask = (lat > lat_range[0]) & (lat < lat_range[1]) & (lon > lon_range[0]) & (lon < lon_range[1])
+
+    # apply the max and take a mean to get average rainfall rate in the catchment
+    forecast_rainfall = np.sum(data * mask)/np.sum(mask)
+    return(forecast_rainfall)
+
+def list_files(runtimes):
     requrl = baseUrl + "/orders/{orderId}/latest".format(orderId=orderName)
     requestHeaders = {"apiKey": apiKey, "Accept": "application/json"}
     req = requests.get(requrl, headers=requestHeaders)
     r = req.json()
 
     # filter to the latest run time + filter out the other longer fileIds (which are duplicates)
-    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] == latestRunDateTime) and (len(f['fileId']) > 40)]
+    fileIds = [f['fileId'] for f in r['orderDetails']['files'] if (f['runDateTime'] in runtimes) and (len(f['fileId']) > 40)]
 
-    
-    requestHeaders = {"apiKey": apiKey}
-
+    files = []
     for fileId in fileIds:
-        (run, time) = fileId[33:].split("_")
+        (run, time) = fileId[32:].split("_")
         # Convert timestamp string to datetime object
-        timestamp = datetime.strptime(latestRunDateTime, '%Y-%m-%dT%H:%M:%SZ')
+        timestamp = datetime.strptime(run, '%Y%m%d%H')
         # Add hours to the datetime object
         timestamp += timedelta(hours=int(time))
 
-        # check if time is in the past
-        if(timestamp < datetime.now()):
-            continue
-
-        hours_away = (timestamp-datetime.now()).total_seconds() / 3600
-        # we use a maximum of 40 hours of forecast data
-        if(hours_away > 40):
-            continue
-
-        requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=fileId)
-        response = requests.get(requrl, headers=requestHeaders)
-
-        grb = pygrib.fromstring(response.content)
-        data = grb.values
-        data = data * 3600 # convert units to mm/h
-        lat, lon = grb.latlons()
-
-        lat_range = [50.54028093201509, 50.61029020017267]
-        lon_range = [-3.978019229686611, -3.8768901858773095]
-
-        # create a mask with True values only within the lat and lon ranges
-        mask = (lat > lat_range[0]) & (lat < lat_range[1]) & (lon > lon_range[0]) & (lon < lon_range[1])
-
-        # apply the max and take a mean to get average rainfall rate in the catchment
-        forecast_rainfall = np.sum(data * mask)/np.sum(mask)
-
-        timestamp_string = datetime.strftime(timestamp, '%Y-%m-%dT%H:%M:%SZ')
-
-        #write to firestore
-        doc_ref = db.collection('forecast_data').document(timestamp_string)
-        doc_ref.set({
+        files.append({
+            'fileId': fileId,
             'timestamp': timestamp,
             'run': run,
-            'time': time,
-            'forecast_rainfall': forecast_rainfall
+            'time': time   
         })
+    return(files)
 
-        print(run, time, forecast_rainfall)
+def upload_files(files):
+    # sort the list (want to process more recent runs first and times closest into the future)
+    files = sorted(files, key=lambda x: (-int(x['run']), int(x['time'])))
+    
+    i = 1
+    for file in files:
+        # limit queries to 10 per run
+        if i > 20:
+            break
+
+        # skip if time is in the past
+        if file['timestamp'] < datetime.now():
+            continue
+        
+        # skip if more than 40 hours into the future
+        if (file['timestamp'] - datetime.now()).total_seconds() / 3600 > 40:
+            continue
+
+        # skip if already in firestore
+        docs = db.collection("forecast_data").where('timestamp', '>', datetime.now())
+        existing_files = [doc.to_dict() for doc in docs.get()]
+        if len([f for f in existing_files if f['run'] == file['run'] and f['time'] == file['time']]) > 0:
+            continue
+        
+        requestHeaders = {"apiKey": apiKey}
+        requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=file['fileId'])
+        response = requests.get(requrl, headers=requestHeaders)
+    
+        forecast_rainfall = calculate_rainfall(response.content)
+        file['forecast_rainfall'] = forecast_rainfall
+        
+        timestamp_string = datetime.strftime(file['timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+        doc_ref = db.collection('forecast_data').document(timestamp_string)
+        
+        doc_ref.set(file)
+
+        print(file['run'], file['time'], forecast_rainfall)
+        
+        i = i+1
 
 def upload_latest_run_files(request):
     runtimes = get_runtimes()
-    for run in runtimes:
-        upload_files(run)
+    files = list_files(runtimes)
+    upload_files(files)
     return('complete')
