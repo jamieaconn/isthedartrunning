@@ -22,15 +22,14 @@ def get_runtimes():
     runtimes = list(set([latestFullRunDateTime, latestRunDateTime]))
     return(runtimes)
 
-
 def calculate_rainfall(data):
     grb = pygrib.fromstring(data)
     data = grb.values
     data = data * 3600 # convert units to mm/h
     lat, lon = grb.latlons()
 
-    lat_range = [50.54028093201509, 50.61029020017267]
-    lon_range = [-3.978019229686611, -3.8768901858773095]
+    lat_range = [50.457504, 50.635526]
+    lon_range = [-4.026476 + 360, -3.746338 + 360]
 
     # create a mask with True values only within the lat and lon ranges
     mask = (lat > lat_range[0]) & (lat < lat_range[1]) & (lon > lon_range[0]) & (lon < lon_range[1])
@@ -67,11 +66,16 @@ def list_files(runtimes):
 def upload_files(files):
     # sort the list (want to process more recent runs first and times closest into the future)
     files = sorted(files, key=lambda x: (-int(x['run']), int(x['time'])))
+
+    # skip if already in firestore
+    docs = db.collection("forecast_data").where('timestamp', '>', datetime.now())
+    existing_files = [doc.to_dict() for doc in docs.get()]
+    existing_files = [{'run': f['run'], 'time':f['time'], 'timestamp': datetime.strptime(f['run'], '%Y%m%d%H') + timedelta(hours=int(f['time']))} for f in existing_files]
     
     i = 1
     for file in files:
         # limit queries to 10 per run
-        if i > 20:
+        if i > 10:
             break
 
         # skip if time is in the past
@@ -82,12 +86,16 @@ def upload_files(files):
         if (file['timestamp'] - datetime.now()).total_seconds() / 3600 > 40:
             continue
 
-        # skip if already in firestore
-        docs = db.collection("forecast_data").where('timestamp', '>', datetime.now())
-        existing_files = [doc.to_dict() for doc in docs.get()]
-        if len([f for f in existing_files if f['run'] == file['run'] and f['time'] == file['time']]) > 0:
-            continue
         
+        # if exact request has previously done or there's a newer run for same timestamp continue...
+
+        existing_files_this_timestamp = [f['run'] for f in existing_files if f['timestamp'] == file['timestamp']]
+
+        if len(existing_files_this_timestamp) != 0:
+            if max(existing_files_this_timestamp) >= file['run']:
+                print(file['timestamp'],'Skipped as already same or more recent run')
+                continue
+
         requestHeaders = {"apiKey": apiKey}
         requrl=baseUrl + "/orders/{orderId}/latest/{fileId}/data".format(orderId=orderName,fileId=file['fileId'])
         response = requests.get(requrl, headers=requestHeaders)
@@ -101,6 +109,8 @@ def upload_files(files):
         doc_ref.set(file)
 
         print(file['run'], file['time'], forecast_rainfall)
+
+        existing_files.append({key: file[key] for key in ['timestamp', 'run', 'time']})
         
         i = i+1
 
