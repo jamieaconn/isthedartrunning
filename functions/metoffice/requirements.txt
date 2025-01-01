@@ -1,5 +1,5 @@
 requests
 datetime
-numpy
+numpy==1.26.4
 pygrib
 google-cloud-firestore
