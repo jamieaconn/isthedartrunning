@@ -17,7 +17,7 @@ function drawChart() {
 
         if (minutes_since_updated > 120) { // if it's not updated in the last 2 hours
           document.querySelector('#errormain').innerHTML = "NOT SURE";
-          document.querySelector('#errorminor').innerHTML = "Something is broken...";
+          document.querySelector('#errorminor').innerHTML = "The EA river gauge is broken.";
         } else {
         
             if (text.length < 5){
