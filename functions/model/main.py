@@ -141,6 +141,21 @@ def model():
     # create output json
     output_df = pd.DataFrame({"timestamp":timestamps, "rain":rain, "forecast": forecast, "level":level, "predict": predict})
 
+    # There's sometimes a discontinuity between the last level and the first prediction.
+    # This is a hack to make the lines conect up...
+
+    # First, compute the number of rows since the last non-null level and get the value of that level
+    output_df["rows_since_latest_level"] = output_df.index - max(output_df[output_df["level"].notna()].index)
+    last_level = output_df[output_df["level"].notna()]['level'].iloc[-1]
+
+    # then just smooth out the predict line so that it connects to the last level
+
+    output_df['predict'] = np.where(
+        (output_df['rows_since_latest_level'] < 0) | (output_df['rows_since_latest_level'] > 8),
+        output_df['predict'],
+        ((output_df['predict'] * output_df['rows_since_latest_level']) + (last_level * (8-output_df['rows_since_latest_level']))) / 8
+    )
+
     output_df = output_df.round({'level': 3, 'predict': 3, 'rain' : 1, 'forecast': 1})
     output_df = pd.DataFrame(output_df).replace({np.nan:None})
 
